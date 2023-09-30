@@ -341,8 +341,36 @@ static int ml_GraphComputeCmd(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_OK;
 }
 
-enum ggml_type ml_GetType(const char *type_str) {
-    // TODO: add more types
+static const char *types[] = {
+        "F32",
+        "F16",
+        "Q4_0",
+        "Q4_1",
+        "Q4_2", // support has been removed
+        "Q4_3", // support has been removed
+        "Q5_0",
+        "Q5_1",
+        "Q8_0",
+        "Q8_1",
+        // k-quantizations
+        "Q2_K",
+        "Q3_K",
+        "Q4_K",
+        "Q5_K",
+        "Q6_K",
+        "Q8_K",
+        "I8",
+        "I16",
+        "I32",
+        "COUNT",
+        NULL
+};
+
+enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    int typeIndex;
+    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, types, "ggml_type", 0, &typeIndex)) {
+        return (enum ggml_type) typeIndex;
+    }
     return GGML_TYPE_F32;
 }
 
@@ -431,13 +459,12 @@ static int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *type_str = Tcl_GetString(objv[2]);
     int ne0;
     if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
         return TCL_ERROR;
     }
 
-    enum ggml_type type = ml_GetType(type_str);
+    enum ggml_type type = ml_GetType(interp, objv[2]);
     struct ggml_tensor *tensor = ggml_new_tensor_1d(ctx->ggml_ctx, type, ne0);
     if (!tensor) {
         SetResult("tensor allocation failed");
@@ -465,7 +492,6 @@ static int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *type_str = Tcl_GetString(objv[2]);
     int ne0;
     if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
         SetResult("ne0 is not an integer");
@@ -477,7 +503,7 @@ static int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
 
-    enum ggml_type type = ml_GetType(type_str);
+    enum ggml_type type = ml_GetType(interp, objv[2]);
     struct ggml_tensor *tensor = ggml_new_tensor_2d(ctx->ggml_ctx, type, ne0, ne1);
     if (!tensor) {
         SetResult("tensor allocation failed");
@@ -506,7 +532,6 @@ static int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *type_str = Tcl_GetString(objv[2]);
     int ne0;
     if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
         SetResult("ne0 is not an integer");
@@ -523,7 +548,7 @@ static int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
 
-    enum ggml_type type = ml_GetType(type_str);
+    enum ggml_type type = ml_GetType(interp, objv[2]);
     struct ggml_tensor *tensor = ggml_new_tensor_3d(ctx->ggml_ctx, type, ne0, ne1, ne2);
     if (!tensor) {
         SetResult("tensor allocation failed");
@@ -552,7 +577,6 @@ static int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *type_str = Tcl_GetString(objv[2]);
     int ne0;
     if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
         SetResult("ne0 is not an integer");
@@ -574,7 +598,7 @@ static int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
 
-    enum ggml_type type = ml_GetType(type_str);
+    enum ggml_type type = ml_GetType(interp, objv[2]);
     struct ggml_tensor *tensor = ggml_new_tensor_4d(ctx->ggml_ctx, type, ne0, ne1, ne2, ne3);
     if (!tensor) {
         SetResult("tensor allocation failed");
@@ -727,7 +751,7 @@ int Ggml_Init(Tcl_Interp *interp) {
 
 #ifdef USE_NAVISERVER
 int Ns_ModuleInit(const char *server, const char *module) {
-    Ns_TclRegisterTrace(server, (Ns_TclTraceProc *) Bcrypt_Init, server, NS_TCL_TRACE_CREATE);
+    Ns_TclRegisterTrace(server, (Ns_TclTraceProc *) Ggml_Init, server, NS_TCL_TRACE_CREATE);
     return NS_OK;
 }
 #endif

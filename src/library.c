@@ -30,20 +30,20 @@
 
 static int ggml_ModuleInitialized;
 
-static Tcl_HashTable tws_ContextToInternal_HT;
-static Tcl_Mutex tws_ContextToInternal_HT_Mutex;
+static Tcl_HashTable ggml_ContextToInternal_HT;
+static Tcl_Mutex ggml_ContextToInternal_HT_Mutex;
 
 static int
-tws_RegisterContext(const char *name, struct ggml_context *internal) {
+ggml_RegisterContext(const char *name, struct ggml_context *internal) {
 
     Tcl_HashEntry *entryPtr;
     int newEntry;
-    Tcl_MutexLock(&tws_ContextToInternal_HT_Mutex);
-    entryPtr = Tcl_CreateHashEntry(&tws_ContextToInternal_HT, (char *) name, &newEntry);
+    Tcl_MutexLock(&ggml_ContextToInternal_HT_Mutex);
+    entryPtr = Tcl_CreateHashEntry(&ggml_ContextToInternal_HT, (char *) name, &newEntry);
     if (newEntry) {
         Tcl_SetHashValue(entryPtr, (ClientData) internal);
     }
-    Tcl_MutexUnlock(&tws_ContextToInternal_HT_Mutex);
+    Tcl_MutexUnlock(&ggml_ContextToInternal_HT_Mutex);
 
     DBG(fprintf(stderr, "--> RegisterContext: name=%s internal=%p %s\n", name, internal,
                 newEntry ? "entered into" : "already in"));
@@ -52,16 +52,16 @@ tws_RegisterContext(const char *name, struct ggml_context *internal) {
 }
 
 static int
-tws_UnregisterContext(const char *name) {
+ggml_UnregisterContext(const char *name) {
 
     Tcl_HashEntry *entryPtr;
 
-    Tcl_MutexLock(&tws_ContextToInternal_HT_Mutex);
-    entryPtr = Tcl_FindHashEntry(&tws_ContextToInternal_HT, (char *) name);
+    Tcl_MutexLock(&ggml_ContextToInternal_HT_Mutex);
+    entryPtr = Tcl_FindHashEntry(&ggml_ContextToInternal_HT, (char *) name);
     if (entryPtr != NULL) {
         Tcl_DeleteHashEntry(entryPtr);
     }
-    Tcl_MutexUnlock(&tws_ContextToInternal_HT_Mutex);
+    Tcl_MutexUnlock(&ggml_ContextToInternal_HT_Mutex);
 
     DBG(fprintf(stderr, "--> UnregisterContext: name=%s entryPtr=%p\n", name, entryPtr));
 
@@ -69,16 +69,16 @@ tws_UnregisterContext(const char *name) {
 }
 
 static struct ggml_context *
-tws_GetInternalFromContext(const char *name) {
+ggml_GetInternalFromContext(const char *name) {
     struct ggml_context *internal = NULL;
     Tcl_HashEntry *entryPtr;
 
-    Tcl_MutexLock(&tws_ContextToInternal_HT_Mutex);
-    entryPtr = Tcl_FindHashEntry(&tws_ContextToInternal_HT, (char *) name);
+    Tcl_MutexLock(&ggml_ContextToInternal_HT_Mutex);
+    entryPtr = Tcl_FindHashEntry(&ggml_ContextToInternal_HT, (char *) name);
     if (entryPtr != NULL) {
         internal = (struct ggml_context *) Tcl_GetHashValue(entryPtr);
     }
-    Tcl_MutexUnlock(&tws_ContextToInternal_HT_Mutex);
+    Tcl_MutexUnlock(&ggml_ContextToInternal_HT_Mutex);
 
     return internal;
 }
@@ -100,7 +100,7 @@ static int ggml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int 
 
     char handle[30];
     CMD_CONTEXT_NAME(handle, ctx);
-    tws_RegisterContext(handle, ctx);
+    ggml_RegisterContext(handle, ctx);
 
     SetResult(handle);
     return TCL_OK;
@@ -112,12 +112,12 @@ static int ggml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int
     DBG(fprintf(stderr, "DestroyContextCmd\n"));
     CheckArgs(2, 2, 1, "handle");
     const char *handle = Tcl_GetString(objv[1]);
-    struct ggml_context *ctx = tws_GetInternalFromContext(handle);
+    struct ggml_context *ctx = ggml_GetInternalFromContext(handle);
     if (!ctx) {
         SetResult("ggml context handle not found");
         return TCL_ERROR;
     }
-    if (!tws_UnregisterContext(handle)) {
+    if (!ggml_UnregisterContext(handle)) {
         SetResult("unregister server name failed");
         return TCL_ERROR;
     }
@@ -135,9 +135,9 @@ static void ggml_ExitHandler(ClientData unused) {
 
 void ggml_InitModule() {
     if (!ggml_ModuleInitialized) {
-        Tcl_MutexLock(&tws_ContextToInternal_HT_Mutex);
-        Tcl_InitHashTable(&tws_ContextToInternal_HT, TCL_STRING_KEYS);
-        Tcl_MutexUnlock(&tws_ContextToInternal_HT_Mutex);
+        Tcl_MutexLock(&ggml_ContextToInternal_HT_Mutex);
+        Tcl_InitHashTable(&ggml_ContextToInternal_HT, TCL_STRING_KEYS);
+        Tcl_MutexUnlock(&ggml_ContextToInternal_HT_Mutex);
 
         ggml_ModuleInitialized = 1;
         DBG(fprintf(stderr, "ggml-tcl module initialized\n"));

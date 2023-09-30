@@ -395,7 +395,6 @@ static int ml_SetF32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
         return TCL_ERROR;
     }
 
-    fprintf(stderr, "tensor_ptr->ggml_tensor=%p value=%f\n", tensor_ptr->ggml_tensor, value);
     ggml_set_f32(tensor_ptr->ggml_tensor, value);
 
     SetResult(tensor_ptr->handle);

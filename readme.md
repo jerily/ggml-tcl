@@ -1,6 +1,6 @@
 # ggml-tcl
 
-TCL bindings for ggml
+TCL bindings for [ggml](https://github.com/ggerganov/ggml).
 
 ## Build Dependency
 

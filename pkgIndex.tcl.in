@@ -1,0 +1,3 @@
+set dir [file dirname [info script]]
+
+package ifneeded ggml @PROJECT_VERSION@ [list load [file join $dir libggml-tcl[info sharedlibextension]]]

@@ -41,14 +41,15 @@ static Tcl_Mutex ml_CGraphToInternal_HT_Mutex;
 static Tcl_HashTable ml_TensorToInternal_HT;
 static Tcl_Mutex ml_TensorToInternal_HT_Mutex;
 
+typedef struct ml_context_s ml_context_t;
+
 typedef struct ml_tensor_s {
+    struct ggml_tensor *ggml_tensor;
+    ml_context_t *ctx;
     struct ml_tensor_s *next;
     struct ml_tensor_s *prev;
-    struct ggml_tensor *ggml_tensor;
     char handle[30];
 } ml_tensor_t;
-
-typedef struct ml_context_t_ ml_context_t;
 
 typedef struct {
     ml_context_t *ctx;
@@ -56,11 +57,12 @@ typedef struct {
     char handle[30];
 } ml_cgraph_t;
 
-struct ml_context_t_ {
+struct ml_context_s {
     size_t mem_size;
     char *mem_buffer;
     struct ggml_context *ggml_ctx;
-    ml_cgraph_t *cgraph;
+    ml_cgraph_t *gf;
+    ml_cgraph_t *gb;
     ml_tensor_t *first_tensor_ptr;
     ml_tensor_t *last_tensor_ptr;
 };
@@ -235,7 +237,8 @@ static int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int ob
     // memory allocation happens here
     struct ggml_context *ggml_ctx = ggml_init(params);
     ctx->ggml_ctx = ggml_ctx;
-    ctx->cgraph = NULL;
+    ctx->gf = NULL;
+    ctx->gb = NULL;
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 
@@ -275,13 +278,21 @@ static int ml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int o
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 
-    if (ctx->cgraph) {
-        if (!ml_UnregisterCGraph(ctx->cgraph->handle)) {
+    if (ctx->gf) {
+        if (!ml_UnregisterCGraph(ctx->gf->handle)) {
             SetResult("unregister cgraph name failed");
             return TCL_ERROR;
         }
-        Tcl_Free((char *) ctx->cgraph);
-        ctx->cgraph = NULL;
+        Tcl_Free((char *) ctx->gf);
+        ctx->gf = NULL;
+    }
+    if (ctx->gb) {
+        if (!ml_UnregisterCGraph(ctx->gb->handle)) {
+            SetResult("unregister cgraph name failed");
+            return TCL_ERROR;
+        }
+        Tcl_Free((char *) ctx->gb);
+        ctx->gb = NULL;
     }
     Tcl_Free(ctx->mem_buffer);
     ggml_free(ctx->ggml_ctx);
@@ -313,7 +324,7 @@ static int ml_BuildForwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int 
     cgraph_ptr->ctx = ctx;
     CMD_CGRAPH_NAME(cgraph_ptr->handle, cgraph_ptr);
     ml_RegisterCGraph(cgraph_ptr->handle, cgraph_ptr);
-    ctx->cgraph = cgraph_ptr;
+    ctx->gf = cgraph_ptr;
 
     SetResult(cgraph_ptr->handle);
     return TCL_OK;
@@ -338,6 +349,63 @@ static int ml_GraphComputeCmd(ClientData clientData, Tcl_Interp *interp, int obj
     }
 
     ggml_graph_compute_with_ctx(cgraph_ptr->ctx->ggml_ctx, cgraph_ptr->ggml_cgraph, nthreads);
+    return TCL_OK;
+}
+
+static int ml_BuildBackwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "BuildBackwardCtxCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle forward_cgraph_handle keep_gradient_graph");
+
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+
+    const char *forward_cgraph_handle = Tcl_GetString(objv[2]);
+    ml_cgraph_t *forward_cgraph_ptr = ml_GetInternalFromCGraph(forward_cgraph_handle);
+    if (!forward_cgraph_ptr) {
+        SetResult("forward_cgraph_handle not found");
+        return TCL_ERROR;
+    }
+
+    int keep_gradient_graph;
+    if (Tcl_GetBooleanFromObj(interp, objv[3], &keep_gradient_graph) != TCL_OK) {
+        SetResult("keep_gradient_graph is not a boolean");
+        return TCL_ERROR;
+    }
+
+    ml_cgraph_t *backward_cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
+    backward_cgraph_ptr->ggml_cgraph = ggml_new_graph(ctx->ggml_ctx);
+    backward_cgraph_ptr->ctx = ctx;
+    CMD_CGRAPH_NAME(backward_cgraph_ptr->handle, backward_cgraph_ptr);
+    ml_RegisterCGraph(backward_cgraph_ptr->handle, backward_cgraph_ptr);
+    ctx->gb = backward_cgraph_ptr;
+
+    *backward_cgraph_ptr->ggml_cgraph = *forward_cgraph_ptr->ggml_cgraph;
+    ggml_build_backward_expand(
+            ctx->ggml_ctx,
+            forward_cgraph_ptr->ggml_cgraph,
+            backward_cgraph_ptr->ggml_cgraph,
+            keep_gradient_graph);
+
+    SetResult(backward_cgraph_ptr->handle);
+    return TCL_OK;
+}
+
+static int ml_GraphResetCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "GraphResetCmd\n"));
+    CheckArgs(2, 2, 1, "cgraph_handle");
+
+    const char *cgraph_handle = Tcl_GetString(objv[1]);
+    ml_cgraph_t *cgraph_ptr = ml_GetInternalFromCGraph(cgraph_handle);
+    if (!cgraph_ptr) {
+        SetResult("cgraph handle not found");
+        return TCL_ERROR;
+    }
+
+    ggml_graph_reset(cgraph_ptr->ggml_cgraph);
     return TCL_OK;
 }
 
@@ -383,6 +451,34 @@ static int ml_InsertTensorToList(ml_context_t *ctx, ml_tensor_t *internal) {
         internal->prev = ctx->last_tensor_ptr;
         ctx->last_tensor_ptr = internal;
     }
+    return TCL_OK;
+}
+
+static int ml_GetGradCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "GetGradCmd\n"));
+    CheckArgs(2, 2, 1, "tensor_handle");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *grad = tensor_ptr->ggml_tensor->grad;
+    if (!grad) {
+        SetResult("tensor has no gradient");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *grad_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    grad_ptr->ggml_tensor = grad;
+    grad_ptr->next = NULL;
+    grad_ptr->prev = NULL;
+    ml_InsertTensorToList(tensor_ptr->ctx, grad_ptr);
+    ml_RegisterTensor(grad_ptr->handle, grad_ptr);
+
+    SetResult(grad_ptr->handle);
     return TCL_OK;
 }
 
@@ -473,6 +569,7 @@ static int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
@@ -512,6 +609,7 @@ static int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     ml_InsertTensorToList(ctx, tensor_ptr);
@@ -557,6 +655,7 @@ static int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     ml_InsertTensorToList(ctx, tensor_ptr);
@@ -607,6 +706,7 @@ static int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     ml_InsertTensorToList(ctx, tensor_ptr);
@@ -648,6 +748,7 @@ static int ml_AddCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     ml_InsertTensorToList(ctx, tensor_ptr);
@@ -689,6 +790,7 @@ static int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
     ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
     tensor_ptr->next = NULL;
     tensor_ptr->prev = NULL;
     ml_InsertTensorToList(ctx, tensor_ptr);
@@ -701,6 +803,18 @@ static int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 }
 
 static void ml_ExitHandler(ClientData unused) {
+    Tcl_MutexLock(&ml_ContextToInternal_HT_Mutex);
+    Tcl_DeleteHashTable(&ml_ContextToInternal_HT);
+    Tcl_MutexUnlock(&ml_ContextToInternal_HT_Mutex);
+
+    Tcl_MutexLock(&ml_CGraphToInternal_HT_Mutex);
+    Tcl_DeleteHashTable(&ml_CGraphToInternal_HT);
+    Tcl_MutexUnlock(&ml_CGraphToInternal_HT_Mutex);
+
+    Tcl_MutexLock(&ml_TensorToInternal_HT_Mutex);
+    Tcl_DeleteHashTable(&ml_TensorToInternal_HT);
+    Tcl_MutexUnlock(&ml_TensorToInternal_HT_Mutex);
+
 }
 
 
@@ -736,6 +850,9 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::destroy_context", ml_DestroyContextCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::build_forward_ctx", ml_BuildForwardCtxCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_compute", ml_GraphComputeCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::build_backward_ctx", ml_BuildBackwardCtxCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::graph_reset", ml_GraphResetCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_param", ml_SetParamCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_f32", ml_SetF32Cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);

@@ -15,8 +15,8 @@ set x2 [::ggml::mul $ctx $x $x]
 set f [::ggml::add $ctx [::ggml::mul $ctx $a $x2] $b]
 
 # build forward computational graph
-set cgraph [::ggml::build_forward_ctx $ctx $f]
-puts "cgraph: $cgraph"
+set gf [::ggml::build_forward_ctx $ctx $f]
+puts "gf: $gf"
 
 # set the input variable and parameter values
 ::ggml::set_f32 $x 2.0
@@ -25,7 +25,7 @@ puts "cgraph: $cgraph"
 
 # compute
 set nthreads 10
-::ggml::graph_compute $cgraph $nthreads
+::ggml::graph_compute $gf $nthreads
 
 # get result
 puts "f = [::ggml::get_f32_1d $f 0]"

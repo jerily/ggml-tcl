@@ -222,7 +222,25 @@ static int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int ob
     DBG(fprintf(stderr, "CreateContextCmd\n"));
     CheckArgs(2, 2, 1, "config_dict");
 
-    size_t mem_size = 16*1024*1024;
+    Tcl_Obj *memSizeKeyPtr = Tcl_NewStringObj("mem_size", -1);
+    Tcl_IncrRefCount(memSizeKeyPtr);
+    Tcl_Obj *memSizePtr;
+    if (TCL_OK != Tcl_DictObjGet(interp, objv[1], memSizeKeyPtr, &memSizePtr)) {
+        SetResult("error reading config dict");
+        return TCL_ERROR;
+    }
+    Tcl_DecrRefCount(memSizeKeyPtr);
+
+    size_t mem_size;
+    if (memSizePtr) {
+        if (Tcl_GetLongFromObj(interp, memSizePtr, &mem_size) != TCL_OK || mem_size <= 0) {
+            SetResult("mem_size is not an integer > 0");
+            return TCL_ERROR;
+        }
+    } else {
+        SetResult("mem_size is not specified");
+        return TCL_ERROR;
+    }
 
     ml_context_t *ctx = (ml_context_t *) Tcl_Alloc(sizeof(ml_context_t));
     ctx->mem_size = mem_size;

@@ -520,8 +520,30 @@ static int ml_SetF32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
     }
 
     ggml_set_f32(tensor_ptr->ggml_tensor, value);
+    return TCL_OK;
+}
 
-    SetResult(tensor_ptr->handle);
+static int ml_SetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetF321DCmd\n"));
+    CheckArgs(4, 4, 1, "tensor_handle i float_value");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int i;
+    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
+        SetResult("i is not an integer >= 0");
+        return TCL_ERROR;
+    }
+    double value;
+    if (Tcl_GetDoubleFromObj(interp, objv[3], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    ggml_set_f32_1d(tensor_ptr->ggml_tensor, i, value);
     return TCL_OK;
 }
 
@@ -543,6 +565,22 @@ static int ml_GetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, T
     float value = ggml_get_f32_1d(tensor_ptr->ggml_tensor, i);
 
     Tcl_SetObjResult(interp, Tcl_NewDoubleObj(value));
+    return TCL_OK;
+}
+
+static int ml_NumElementsCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "NumElementsCmd\n"));
+    CheckArgs(2, 2, 1, "tensor_handle");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    long ne = ggml_nelements(tensor_ptr->ggml_tensor);
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(ne));
     return TCL_OK;
 }
 
@@ -802,6 +840,43 @@ static int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_OK;
 }
 
+static int ml_SumCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SumCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_handle");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor a handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_sum(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+
 static void ml_ExitHandler(ClientData unused) {
     Tcl_MutexLock(&ml_ContextToInternal_HT_Mutex);
     Tcl_DeleteHashTable(&ml_ContextToInternal_HT);
@@ -855,13 +930,16 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_param", ml_SetParamCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_f32", ml_SetF32Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::nelements", ml_NumElementsCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_1d", ml_NewTensor1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_2d", ml_NewTensor2DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_3d", ml_NewTensor3DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_4d", ml_NewTensor4DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::add", ml_AddCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mul", ml_MulCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sum", ml_SumCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

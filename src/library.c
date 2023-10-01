@@ -409,6 +409,35 @@ static int ml_GraphResetCmd(ClientData clientData, Tcl_Interp *interp, int objc,
     return TCL_OK;
 }
 
+static int ml_GraphDumpDotCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "GraphDumpDotCmd\n"));
+    CheckArgs(4, 4, 1, "gb_handle fg_handle filename");
+
+    const char *gb_handle = Tcl_GetString(objv[1]);
+    ml_cgraph_t *gb_ptr = ml_GetInternalFromCGraph(gb_handle);
+    if (!gb_ptr) {
+        SetResult("cgraph handle not found");
+        return TCL_ERROR;
+    }
+    struct ggml_cgraph *gb = gb_ptr->ggml_cgraph;
+    struct ggml_cgraph *gf = NULL;
+
+    int fg_handle_len;
+    const char *fg_handle = Tcl_GetStringFromObj(objv[2], &fg_handle_len);
+    if (fg_handle_len > 0) {
+        ml_cgraph_t *gf_ptr = ml_GetInternalFromCGraph(fg_handle);
+        if (!gf_ptr) {
+            SetResult("cgraph handle not found");
+            return TCL_ERROR;
+        }
+        gf = gf_ptr->ggml_cgraph;
+    }
+
+    const char *filename = Tcl_GetString(objv[3]);
+    ggml_graph_dump_dot(gb, gf, filename);
+    return TCL_OK;
+}
+
 static const char *types[] = {
         "F32",
         "F16",
@@ -584,6 +613,58 @@ static int ml_NumElementsCmd(ClientData clientData, Tcl_Interp *interp, int objc
     return TCL_OK;
 }
 
+static int ml_NewTensorCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "NewTensorCmd\n"));
+    CheckArgs(5, 5, 1, "context_handle type ndims ne_list");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    int ndims;
+    if (Tcl_GetIntFromObj(interp, objv[3], &ndims) != TCL_OK || ndims < 1) {
+        SetResult("ndims is not an integer >= 1");
+        return TCL_ERROR;
+    }
+    Tcl_Obj **ne_list;
+    int ne_list_len;
+    if (Tcl_ListObjGetElements(interp, objv[4], &ne_list_len, &ne_list) != TCL_OK) {
+        SetResult("ne_list is not a list");
+        return TCL_ERROR;
+    }
+//    if (ne_list_len != ndims) {
+//        SetResult("ne_list length does not match ndims");
+//        return TCL_ERROR;
+//    }
+    int64_t ne[ndims];
+    for (int i = 0; i < ndims; i++) {
+        if (Tcl_GetLongFromObj(interp, ne_list[i], &ne[i]) != TCL_OK || ne[i] < 0) {
+            SetResult("ne_list element is not an integer >= 0");
+            return TCL_ERROR;
+        }
+    }
+
+    enum ggml_type type = ml_GetType(interp, objv[2]);
+    struct ggml_tensor *tensor = ggml_new_tensor(ctx->ggml_ctx, type, ndims, ne);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
 static int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensor1DCmd\n"));
     CheckArgs(4, 4, 1, "context_handle type ne0");
@@ -594,7 +675,8 @@ static int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
     int ne0;
-    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
+    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK || ne0 < 0) {
+        SetResult("ne0 is not an integer >= 0");
         return TCL_ERROR;
     }
 
@@ -628,13 +710,13 @@ static int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
     int ne0;
-    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
-        SetResult("ne0 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK || ne0 < 0) {
+        SetResult("ne0 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne1;
-    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK) {
-        SetResult("ne1 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK || ne1 < 0) {
+        SetResult("ne1 is not an integer >= 0");
         return TCL_ERROR;
     }
 
@@ -669,18 +751,18 @@ static int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
     int ne0;
-    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
-        SetResult("ne0 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK || ne0 < 0) {
+        SetResult("ne0 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne1;
-    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK) {
-        SetResult("ne1 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK || ne1 < 0) {
+        SetResult("ne1 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne2;
-    if (Tcl_GetIntFromObj(interp, objv[5], &ne2) != TCL_OK) {
-        SetResult("ne2 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[5], &ne2) != TCL_OK || ne2 < 0) {
+        SetResult("ne2 is not an integer >= 0");
         return TCL_ERROR;
     }
 
@@ -715,23 +797,23 @@ static int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc
         return TCL_ERROR;
     }
     int ne0;
-    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK) {
-        SetResult("ne0 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[3], &ne0) != TCL_OK || ne0 < 0) {
+        SetResult("ne0 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne1;
-    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK) {
-        SetResult("ne1 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[4], &ne1) != TCL_OK || ne1 < 0) {
+        SetResult("ne1 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne2;
-    if (Tcl_GetIntFromObj(interp, objv[5], &ne2) != TCL_OK) {
-        SetResult("ne2 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[5], &ne2) != TCL_OK || ne2 < 0) {
+        SetResult("ne2 is not an integer >= 0");
         return TCL_ERROR;
     }
     int ne3;
-    if (Tcl_GetIntFromObj(interp, objv[6], &ne3) != TCL_OK) {
-        SetResult("ne3 is not an integer");
+    if (Tcl_GetIntFromObj(interp, objv[6], &ne3) != TCL_OK || ne3 < 0) {
+        SetResult("ne3 is not an integer >= 0");
         return TCL_ERROR;
     }
 
@@ -842,7 +924,7 @@ static int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static int ml_SumCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "SumCmd\n"));
-    CheckArgs(4, 4, 1, "context_handle tensor_handle");
+    CheckArgs(3, 3, 1, "context_handle tensor_handle");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
@@ -933,6 +1015,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::nelements", ml_NumElementsCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::new_tensor", ml_NewTensorCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_1d", ml_NewTensor1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_2d", ml_NewTensor2DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_3d", ml_NewTensor3DCmd, NULL, NULL);
@@ -940,6 +1023,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::add", ml_AddCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mul", ml_MulCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sum", ml_SumCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::graph_dump_dot", ml_GraphDumpDotCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

@@ -1,7 +1,8 @@
 package require ggml
 
 # create context
-set ctx [::ggml::create_context [dict create]]
+set mem_size [expr { 16*1024*1024 }]
+set ctx [::ggml::create_context $mem_size]
 puts "ctx: $ctx"
 
 set x [::ggml::new_tensor_1d $ctx F32 1]

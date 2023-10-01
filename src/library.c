@@ -15,39 +15,16 @@
 
 static int ml_ModuleInitialized;
 
-
-static int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "CreateContextCmd\n"));
-    CheckArgs(2, 2, 1, "config_dict");
-
-    Tcl_Obj *memSizeKeyPtr = Tcl_NewStringObj("mem_size", -1);
-    Tcl_IncrRefCount(memSizeKeyPtr);
-    Tcl_Obj *memSizePtr;
-    if (TCL_OK != Tcl_DictObjGet(interp, objv[1], memSizeKeyPtr, &memSizePtr)) {
-        SetResult("error reading config dict");
-        return TCL_ERROR;
-    }
-    Tcl_DecrRefCount(memSizeKeyPtr);
-
-    size_t mem_size;
-    if (memSizePtr) {
-        if (Tcl_GetLongFromObj(interp, memSizePtr, &mem_size) != TCL_OK || mem_size <= 0) {
-            SetResult("mem_size is not an integer > 0");
-            return TCL_ERROR;
-        }
-    } else {
-        SetResult("mem_size is not specified");
-        return TCL_ERROR;
-    }
+static ml_context_t *ml_CreateContext(size_t mem_size) {
 
     ml_context_t *ctx = (ml_context_t *) Tcl_Alloc(sizeof(ml_context_t));
     ctx->mem_size = mem_size;
     ctx->mem_buffer = Tcl_Alloc(mem_size);
 
     struct ggml_init_params params = {
-        .mem_size   = mem_size,                      // bytes
-        .mem_buffer = ctx->mem_buffer,               // if NULL, memory will be allocated internally
-        .no_alloc   = 0,                             // don't allocate memory for the tensor data
+            .mem_size   = mem_size,                      // bytes
+            .mem_buffer = ctx->mem_buffer,               // if NULL, memory will be allocated internally
+            .no_alloc   = 0,                             // don't allocate memory for the tensor data
     };
 
     // memory allocation happens here
@@ -58,25 +35,31 @@ static int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int ob
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 
-    char handle[30];
-    CMD_CONTEXT_NAME(handle, ctx);
-    ml_RegisterContext(handle, ctx);
+    CMD_CONTEXT_NAME(ctx->handle, ctx);
+    ml_RegisterContext(ctx->handle, ctx);
 
-    SetResult(handle);
+    return ctx;
+}
+
+static int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "CreateContextCmd\n"));
+    CheckArgs(2, 2, 1, "mem_size");
+
+    size_t mem_size;
+    if (Tcl_GetLongFromObj(interp, objv[1], &mem_size) != TCL_OK || mem_size <= 0) {
+        SetResult("mem_size is not an integer > 0");
+        return TCL_ERROR;
+    }
+
+    ml_context_t *ctx = ml_CreateContext(mem_size);
+
+    SetResult(ctx->handle);
     return TCL_OK;
 
 }
 
-static int ml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "DestroyContextCmd\n"));
-    CheckArgs(2, 2, 1, "context_handle");
-    const char *handle = Tcl_GetString(objv[1]);
-    ml_context_t *ctx = ml_GetInternalFromContext(handle);
-    if (!ctx) {
-        SetResult("context handle not found");
-        return TCL_ERROR;
-    }
-    if (!ml_UnregisterContext(handle)) {
+static int ml_DestroyContext(Tcl_Interp *interp, ml_context_t *ctx) {
+    if (!ml_UnregisterContext(ctx->handle)) {
         SetResult("unregister server name failed");
         return TCL_ERROR;
     }
@@ -116,6 +99,53 @@ static int ml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int o
 
     return TCL_OK;
 }
+static int ml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "DestroyContextCmd\n"));
+    CheckArgs(2, 2, 1, "context_handle");
+    const char *handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    return ml_DestroyContext(interp, ctx);
+}
+
+static int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "LoadContextFromFileCmd\n"));
+    CheckArgs(2, 2, 1, "filename");
+
+    ml_context_t *ctx = (ml_context_t *) Tcl_Alloc(sizeof(ml_context_t));
+
+    struct gguf_init_params params = {
+            .no_alloc = 0,
+            .ctx = &ctx->ggml_ctx,
+    };
+
+    const char *filename = Tcl_GetString(objv[1]);
+    fprintf(stderr, "filename: %s\n", filename);
+    struct gguf_context *gguf_ctx = gguf_init_from_file(filename, params);
+    if (!gguf_ctx) {
+        Tcl_Free((char *) ctx);
+        SetResult("failed to load context from file");
+        return TCL_ERROR;
+    }
+//    gguf_free(gguf_ctx);
+
+    ctx->mem_size = ggml_get_mem_size(ctx->ggml_ctx);
+    ctx->mem_buffer = ggml_get_mem_buffer(ctx->ggml_ctx);
+    ctx->gf = NULL;
+    ctx->gb = NULL;
+    ctx->first_tensor_ptr = NULL;
+    ctx->last_tensor_ptr = NULL;
+
+    CMD_CONTEXT_NAME(ctx->handle, ctx);
+    ml_RegisterContext(ctx->handle, ctx);
+
+    SetResult(ctx->handle);
+    return TCL_OK;
+}
+
 
 static int ml_BuildForwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "BuildForwardCtxCmd\n"));
@@ -284,12 +314,17 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateNamespace(interp, "::ggml", NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::create_context", ml_CreateContextCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::destroy_context", ml_DestroyContextCmd, NULL, NULL);
+//    Tcl_CreateObjCommand(interp, "::ggml::write_context_to_file", ml_WriteContextToFileCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::load_context_from_file", ml_LoadContextFromFileCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::build_forward_ctx", ml_BuildForwardCtxCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::graph_compute", ml_GraphComputeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::build_backward_ctx", ml_BuildBackwardCtxCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "::ggml::graph_compute", ml_GraphComputeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_reset", ml_GraphResetCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::graph_dump_dot", ml_GraphDumpDotCmd, NULL, NULL);
+
     Tcl_CreateObjCommand(interp, "::ggml::set_param", ml_SetParamCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_f32", ml_SetF32Cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
@@ -302,7 +337,6 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::add", ml_AddCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mul", ml_MulCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sum", ml_SumCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::graph_dump_dot", ml_GraphDumpDotCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

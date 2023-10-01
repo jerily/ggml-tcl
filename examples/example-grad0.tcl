@@ -136,7 +136,7 @@ proc main {argv0 argv} {
         set seed [expr { int(rand() * $::MAX_INT) }]
 
         puts "example-grad0: iter:${iter}/${niter}"
-        set ctx0 [::ggml::create_context [dict create mem_size $mem_size]]
+        set ctx0 [::ggml::create_context $mem_size]
 
         set ne_lst [get_random_dims 4]
 

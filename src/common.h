@@ -49,6 +49,7 @@ struct ml_context_s {
     ml_cgraph_t *gb;
     ml_tensor_t *first_tensor_ptr;
     ml_tensor_t *last_tensor_ptr;
+    char handle[30];
 };
 
 EXTERN void ml_InitContextHT();

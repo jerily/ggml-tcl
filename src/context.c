@@ -123,7 +123,7 @@ int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int obj
         SetResult("failed to load context from file");
         return TCL_ERROR;
     }
-    gguf_free(gguf_ctx);
+//    gguf_free(gguf_ctx);
 
     ctx->mem_size = ggml_get_mem_size(ctx->ggml_ctx);
     ctx->mem_buffer = NULL; // ggml_get_mem_buffer(ctx->ggml_ctx);
@@ -136,5 +136,37 @@ int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int obj
     ml_RegisterContext(ctx->handle, ctx);
 
     SetResult(ctx->handle);
+    return TCL_OK;
+}
+
+int ml_UsedMemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UsedMemCmd\n"));
+    CheckArgs(2, 2, 1, "context_handle");
+    const char *handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+
+    size_t used_mem = ggml_used_mem(ctx->ggml_ctx);
+
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(used_mem));
+    return TCL_OK;
+}
+
+int ml_GetMaxTensorSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UsedMemCmd\n"));
+    CheckArgs(2, 2, 1, "context_handle");
+    const char *handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+
+    size_t max_tensor_size = ggml_get_max_tensor_size(ctx->ggml_ctx);
+
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(max_tensor_size));
     return TCL_OK;
 }

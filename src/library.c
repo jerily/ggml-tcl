@@ -187,6 +187,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::load_context_from_file", ml_LoadContextFromFileCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::used_mem", ml_UsedMemCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_max_tensor_size", ml_GetMaxTensorSizeCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_mem_size", ml_GetMemSizeCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "::ggml::build_forward_ctx", ml_BuildForwardCtxCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::build_backward_ctx", ml_BuildBackwardCtxCmd, NULL, NULL);

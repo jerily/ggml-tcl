@@ -42,9 +42,9 @@ typedef struct {
 } ml_cgraph_t;
 
 struct ml_context_s {
-    size_t mem_size;
     char *mem_buffer;
     struct ggml_context *ggml_ctx;
+    struct gguf_context *gguf_ctx;
     ml_cgraph_t *gf;
     ml_cgraph_t *gb;
     ml_tensor_t *first_tensor_ptr;

@@ -11,7 +11,6 @@
 static ml_context_t *ml_CreateContext(size_t mem_size) {
 
     ml_context_t *ctx = (ml_context_t *) Tcl_Alloc(sizeof(ml_context_t));
-    ctx->mem_size = mem_size;
     ctx->mem_buffer = Tcl_Alloc(mem_size);
 
     struct ggml_init_params params = {
@@ -23,6 +22,7 @@ static ml_context_t *ml_CreateContext(size_t mem_size) {
     // memory allocation happens here
     struct ggml_context *ggml_ctx = ggml_init(params);
     ctx->ggml_ctx = ggml_ctx;
+    ctx->gguf_ctx = NULL;
     ctx->gf = NULL;
     ctx->gb = NULL;
     ctx->first_tensor_ptr = NULL;
@@ -86,8 +86,14 @@ static int ml_DestroyContext(Tcl_Interp *interp, ml_context_t *ctx) {
         Tcl_Free((char *) ctx->gb);
         ctx->gb = NULL;
     }
-    Tcl_Free(ctx->mem_buffer);
-    ggml_free(ctx->ggml_ctx);
+    if (ctx->mem_buffer != NULL) {
+        Tcl_Free(ctx->mem_buffer);
+    }
+    if (ctx->gguf_ctx != NULL) {
+        gguf_free(ctx->gguf_ctx);
+    } else {
+        ggml_free(ctx->ggml_ctx);
+    }
     Tcl_Free((char *) ctx);
 
     return TCL_OK;
@@ -123,10 +129,9 @@ int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int obj
         SetResult("failed to load context from file");
         return TCL_ERROR;
     }
-//    gguf_free(gguf_ctx);
 
-    ctx->mem_size = ggml_get_mem_size(ctx->ggml_ctx);
-    ctx->mem_buffer = NULL; // ggml_get_mem_buffer(ctx->ggml_ctx);
+    ctx->gguf_ctx = gguf_ctx;
+    ctx->mem_buffer = NULL;
     ctx->gf = NULL;
     ctx->gb = NULL;
     ctx->first_tensor_ptr = NULL;
@@ -168,5 +173,21 @@ int ml_GetMaxTensorSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, 
     size_t max_tensor_size = ggml_get_max_tensor_size(ctx->ggml_ctx);
 
     Tcl_SetObjResult(interp, Tcl_NewLongObj(max_tensor_size));
+    return TCL_OK;
+}
+
+int ml_GetMemSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UsedMemCmd\n"));
+    CheckArgs(2, 2, 1, "context_handle");
+    const char *handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+
+    size_t mem_size = ggml_get_mem_size(ctx->ggml_ctx);
+
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(mem_size));
     return TCL_OK;
 }

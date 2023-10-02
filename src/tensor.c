@@ -43,7 +43,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return GGML_TYPE_F32;
 }
 
-/*static*/ int ml_InsertTensorToList(ml_context_t *ctx, ml_tensor_t *internal) {
+int ml_InsertTensorToList(ml_context_t *ctx, ml_tensor_t *internal) {
     if (ctx->first_tensor_ptr == NULL) {
         ctx->first_tensor_ptr = internal;
         ctx->last_tensor_ptr = internal;
@@ -55,7 +55,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_GetGradCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_GetGradCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "GetGradCmd\n"));
     CheckArgs(2, 2, 1, "tensor_handle");
 
@@ -83,7 +83,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_SetParamCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_SetParamCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "SetParamCmd\n"));
     CheckArgs(3, 3, 1, "context_handle tensor_handle");
 
@@ -105,71 +105,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_SetF32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "SetF32Cmd\n"));
-    CheckArgs(3, 3, 1, "tensor_handle float_value");
-
-    const char *tensor_handle = Tcl_GetString(objv[1]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
-        return TCL_ERROR;
-    }
-    double value;
-    if (Tcl_GetDoubleFromObj(interp, objv[2], &value) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    ggml_set_f32(tensor_ptr->ggml_tensor, value);
-    return TCL_OK;
-}
-
-/*static*/ int ml_SetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "SetF321DCmd\n"));
-    CheckArgs(4, 4, 1, "tensor_handle i float_value");
-
-    const char *tensor_handle = Tcl_GetString(objv[1]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
-        return TCL_ERROR;
-    }
-    int i;
-    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
-        SetResult("i is not an integer >= 0");
-        return TCL_ERROR;
-    }
-    double value;
-    if (Tcl_GetDoubleFromObj(interp, objv[3], &value) != TCL_OK) {
-        return TCL_ERROR;
-    }
-
-    ggml_set_f32_1d(tensor_ptr->ggml_tensor, i, value);
-    return TCL_OK;
-}
-
-/*static*/ int ml_GetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "GetF321DCmd\n"));
-    CheckArgs(3, 3, 1, "tensor_handle i");
-    const char *tensor_handle = Tcl_GetString(objv[1]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
-        return TCL_ERROR;
-    }
-    int i;
-    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
-        SetResult("i is not an integer >= 0");
-        return TCL_ERROR;
-    }
-
-    float value = ggml_get_f32_1d(tensor_ptr->ggml_tensor, i);
-
-    Tcl_SetObjResult(interp, Tcl_NewDoubleObj(value));
-    return TCL_OK;
-}
-
-/*static*/ int ml_NumElementsCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NumElementsCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NumElementsCmd\n"));
     CheckArgs(2, 2, 1, "tensor_handle");
 
@@ -185,7 +121,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_NewTensorCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewTensorCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensorCmd\n"));
     CheckArgs(5, 5, 1, "context_handle type ndims ne_list");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -237,7 +173,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewTensor1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensor1DCmd\n"));
     CheckArgs(4, 4, 1, "context_handle type ne0");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -272,7 +208,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewTensor2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensor1DCmd\n"));
     CheckArgs(5, 5, 1, "context_handle type ne0 ne1");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -313,7 +249,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewTensor3DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensor1DCmd\n"));
     CheckArgs(6, 6, 1, "context_handle type ne0 ne1 ne2");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -359,7 +295,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewTensor4DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "NewTensor1DCmd\n"));
     CheckArgs(7, 7, 1, "context_handle type ne0 ne1 ne2 ne3");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -410,7 +346,298 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_AddCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_NewI32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "NewI32Cmd\n"));
+    CheckArgs(3, 3, 1, "context_handle int32_value");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    int value;
+    if (Tcl_GetIntFromObj(interp, objv[2], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_new_i32(ctx->ggml_ctx, value);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_NewF32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "NewF32Cmd\n"));
+    CheckArgs(3, 3, 1, "context_handle float_value");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    double value;
+    if (Tcl_GetDoubleFromObj(interp, objv[2], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_new_f32(ctx->ggml_ctx, value);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_DupTensorCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "DupTensorCmd\n"));
+    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *input_tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!input_tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_dup(ctx->ggml_ctx, input_tensor_ptr->ggml_tensor);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_ViewTensorCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "ViewTensorCmd\n"));
+    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *input_tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!input_tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_view_tensor(ctx->ggml_ctx, input_tensor_ptr->ggml_tensor);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_SetZeroCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetZeroCmd\n"));
+    CheckArgs(2, 2, 1, "tensor_handle");
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *input_tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!input_tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_set_zero(input_tensor_ptr->ggml_tensor);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
+int ml_SetI32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetI32Cmd\n"));
+    CheckArgs(3, 3, 1, "tensor_handle int32_value");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int value;
+    if (Tcl_GetIntFromObj(interp, objv[2], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    ggml_set_i32(tensor_ptr->ggml_tensor, value);
+    return TCL_OK;
+}
+
+int ml_SetF32Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetF32Cmd\n"));
+    CheckArgs(3, 3, 1, "tensor_handle float_value");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    double value;
+    if (Tcl_GetDoubleFromObj(interp, objv[2], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    ggml_set_f32(tensor_ptr->ggml_tensor, value);
+    return TCL_OK;
+}
+
+int ml_GetI321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "GetI321DCmd\n"));
+    CheckArgs(3, 3, 1, "tensor_handle i");
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int i;
+    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
+        SetResult("i is not an integer >= 0");
+        return TCL_ERROR;
+    }
+
+    int32_t value = ggml_get_i32_1d(tensor_ptr->ggml_tensor, i);
+
+    Tcl_SetObjResult(interp, Tcl_NewIntObj(value));
+    return TCL_OK;
+}
+
+int ml_SetI321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetI321DCmd\n"));
+    CheckArgs(4, 4, 1, "tensor_handle i int32_value");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int i;
+    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
+        SetResult("i is not an integer >= 0");
+        return TCL_ERROR;
+    }
+    int32_t value;
+    if (Tcl_GetIntFromObj(interp, objv[3], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    ggml_set_i32_1d(tensor_ptr->ggml_tensor, i, value);
+    return TCL_OK;
+}
+
+int ml_GetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "GetF321DCmd\n"));
+    CheckArgs(3, 3, 1, "tensor_handle i");
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int i;
+    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
+        SetResult("i is not an integer >= 0");
+        return TCL_ERROR;
+    }
+
+    float value = ggml_get_f32_1d(tensor_ptr->ggml_tensor, i);
+
+    Tcl_SetObjResult(interp, Tcl_NewDoubleObj(value));
+    return TCL_OK;
+}
+
+int ml_SetF321DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "SetF321DCmd\n"));
+    CheckArgs(4, 4, 1, "tensor_handle i float_value");
+
+    const char *tensor_handle = Tcl_GetString(objv[1]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int i;
+    if (Tcl_GetIntFromObj(interp, objv[2], &i) != TCL_OK || i < 0) {
+        SetResult("i is not an integer >= 0");
+        return TCL_ERROR;
+    }
+    double value;
+    if (Tcl_GetDoubleFromObj(interp, objv[3], &value) != TCL_OK) {
+        return TCL_ERROR;
+    }
+
+    ggml_set_f32_1d(tensor_ptr->ggml_tensor, i, value);
+    return TCL_OK;
+}
+
+
+
+
+
+
+int ml_AddCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "AddCmd\n"));
     CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -452,7 +679,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_MulCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "MulCmd\n"));
     CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -494,7 +721,7 @@ enum ggml_type ml_GetType(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     return TCL_OK;
 }
 
-/*static*/ int ml_SumCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+int ml_SumCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "SumCmd\n"));
     CheckArgs(3, 3, 1, "context_handle tensor_handle");
     const char *context_handle = Tcl_GetString(objv[1]);

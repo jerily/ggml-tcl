@@ -198,15 +198,23 @@ int Ggml_Init(Tcl_Interp *interp) {
 
     Tcl_CreateObjCommand(interp, "::ggml::set_param", ml_SetParamCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::set_f32", ml_SetF32Cmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::nelements", ml_NumElementsCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor", ml_NewTensorCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_1d", ml_NewTensor1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_2d", ml_NewTensor2DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_3d", ml_NewTensor3DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::new_tensor_4d", ml_NewTensor4DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::new_i32", ml_NewI32Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::new_f32", ml_NewF32Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::dup_tensor", ml_DupTensorCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::view_tensor", ml_ViewTensorCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_zero", ml_SetZeroCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_i32", ml_SetI32Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_f32", ml_SetF32Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_i32_1d", ml_GetI321DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_i32_1d", ml_SetI321DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::add", ml_AddCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mul", ml_MulCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sum", ml_SumCmd, NULL, NULL);

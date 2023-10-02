@@ -6,11 +6,13 @@
 #ifndef GGML_TCL_CONTEXT_H
 #define GGML_TCL_CONTEXT_H
 
-int ml_CreateContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int ml_DestroyContextCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int ml_UsedMemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int ml_GetMaxTensorSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
-int ml_GetMemSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+#define GGML_TCL_CMD(x) int (x)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+
+GGML_TCL_CMD(ml_CreateContextCmd);
+GGML_TCL_CMD(ml_DestroyContextCmd);
+GGML_TCL_CMD(ml_LoadContextFromFileCmd);
+GGML_TCL_CMD(ml_UsedMemCmd);
+GGML_TCL_CMD(ml_GetMaxTensorSizeCmd);
+GGML_TCL_CMD(ml_GetMemSizeCmd);
 
 #endif //GGML_TCL_CONTEXT_H

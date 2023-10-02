@@ -52,21 +52,21 @@ struct ml_context_s {
     char handle[30];
 };
 
-EXTERN void ml_InitContextHT();
-EXTERN void ml_DeleteContextHT();
-EXTERN void ml_InitCGraphHT();
-EXTERN void ml_DeleteCGraphHT();
-EXTERN void ml_InitTensorHT();
-EXTERN void ml_DeleteTensorHT();
+void ml_InitContextHT();
+void ml_DeleteContextHT();
+void ml_InitCGraphHT();
+void ml_DeleteCGraphHT();
+void ml_InitTensorHT();
+void ml_DeleteTensorHT();
 
-EXTERN int ml_RegisterContext(const char *name, ml_context_t *internal);
-EXTERN int ml_UnregisterContext(const char *name);
-EXTERN ml_context_t *ml_GetInternalFromContext(const char *name);
-EXTERN int ml_RegisterCGraph(const char *name, ml_cgraph_t *internal);
-EXTERN int ml_UnregisterCGraph(const char *name);
-EXTERN ml_cgraph_t *ml_GetInternalFromCGraph(const char *name);
-EXTERN int ml_RegisterTensor(const char *name, ml_tensor_t *internal);
-EXTERN int ml_UnregisterTensor(const char *name);
-EXTERN ml_tensor_t *ml_GetInternalFromTensor(const char *name);
+int ml_RegisterContext(const char *name, ml_context_t *internal);
+int ml_UnregisterContext(const char *name);
+ml_context_t *ml_GetInternalFromContext(const char *name);
+int ml_RegisterCGraph(const char *name, ml_cgraph_t *internal);
+int ml_UnregisterCGraph(const char *name);
+ml_cgraph_t *ml_GetInternalFromCGraph(const char *name);
+int ml_RegisterTensor(const char *name, ml_tensor_t *internal);
+int ml_UnregisterTensor(const char *name);
+ml_tensor_t *ml_GetInternalFromTensor(const char *name);
 
 #endif //GGML_TCL_COMMON_H

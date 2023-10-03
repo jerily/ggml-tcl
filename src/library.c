@@ -264,6 +264,9 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::norm_inplace", ml_NormInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rms_norm", ml_RmsNormCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rms_norm_inplace", ml_RmsNormInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::group_norm", ml_GroupNormCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::group_norm_inplace", ml_GroupNormInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rms_norm_back", ml_RmsNormBackCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

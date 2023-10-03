@@ -97,12 +97,12 @@ GGML_TCL_CMD(ml_RmsNormInplaceCmd);
 
 // group normalize along ne0*ne1*n_groups
 // used in stable-diffusion
-//GGML_TCL_CMD(ml_GroupNormCmd);
-//GGML_TCL_CMD(ml_GroupNormInplaceCmd);
+GGML_TCL_CMD(ml_GroupNormCmd);
+GGML_TCL_CMD(ml_GroupNormInplaceCmd);
 
 // a - x
 // b - dy
-//GGML_TCL_CMD(ml_RmsNormBackCmd);
+GGML_TCL_CMD(ml_RmsNormBackCmd);
 
 // A: n columns, m rows
 // B: n columns, p rows  (i.e. we transpose it internally)

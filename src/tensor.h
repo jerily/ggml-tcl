@@ -116,14 +116,18 @@ GGML_TCL_CMD(ml_OutProdCmd);
 
 GGML_TCL_CMD(ml_ScaleCmd);
 GGML_TCL_CMD(ml_ScaleInplaceCmd);
-//GGML_TCL_CMD(ml_SetCmd);
-//GGML_TCL_CMD(ml_SetInplaceCmd);
-//GGML_TCL_CMD(ml_Set1DCmd);
-//GGML_TCL_CMD(ml_Set1DInplaceCmd);
+
 // b -> view(a,offset,nb1,nb2,3), return modified a
-//GGML_TCL_CMD(ml_Set2DCmd);
+GGML_TCL_CMD(ml_SetCmd);
 // b -> view(a,offset,nb1,nb2,3), return view(a)
-//GGML_TCL_CMD(ml_Set2DInplaceCmd);
+GGML_TCL_CMD(ml_SetInplaceCmd);
+GGML_TCL_CMD(ml_Set1DCmd);
+GGML_TCL_CMD(ml_Set1DInplaceCmd);
+// b -> view(a,offset,nb1,nb2,3), return modified a
+GGML_TCL_CMD(ml_Set2DCmd);
+// b -> view(a,offset,nb1,nb2,3), return view(a)
+GGML_TCL_CMD(ml_Set2DInplaceCmd);
+
 // a -> b, return view(b)
 //GGML_TCL_CMD(ml_CpyCmd);
 // a -> b, in-place, return view(b)

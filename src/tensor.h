@@ -58,9 +58,9 @@ GGML_TCL_CMD(ml_LogCmd);
 GGML_TCL_CMD(ml_LogInplaceCmd);
 // return scalar
 GGML_TCL_CMD(ml_SumCmd);
-//GGML_TCL_CMD(ml_SumRowsCmd);
-//GGML_TCL_CMD(ml_MeanCmd);
-//GGML_TCL_CMD(ml_ArgmaxCmd);
+GGML_TCL_CMD(ml_SumRowsCmd);
+GGML_TCL_CMD(ml_MeanCmd);
+GGML_TCL_CMD(ml_ArgmaxCmd);
 //GGML_TCL_CMD(ml_RepeatCmd);
 //GGML_TCL_CMD(ml_RepeatBackCmd);
 //GGML_TCL_CMD(ml_ConcatCmd);

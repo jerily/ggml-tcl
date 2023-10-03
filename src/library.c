@@ -215,8 +215,24 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::set_i32_1d", ml_SetI321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_f32_1d", ml_GetF321DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_f32_1d", ml_SetF321DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::dup", ml_DupCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::dup_inplace", ml_DupInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::add", ml_AddCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::add_inplace", ml_AddInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::add1", ml_Add1Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::add1_inplace", ml_Add1InplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sub", ml_SubCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sub_inplace", ml_SubInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mul", ml_MulCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::mul_inplace", ml_MulInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::div", ml_DivCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::div_inplace", ml_DivInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sqr", ml_SqrCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sqr_inplace", ml_SqrInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sqrt", ml_SqrtCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sqrt_inplace", ml_SqrtInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::log", ml_LogCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::log_inplace", ml_LogInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sum", ml_SumCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));

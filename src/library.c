@@ -260,6 +260,10 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::silu", ml_SiluCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::silu_inplace", ml_SiluInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::silu_back", ml_SiluBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::norm", ml_NormCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::norm_inplace", ml_NormInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rms_norm", ml_RmsNormCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rms_norm_inplace", ml_RmsNormInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

@@ -90,10 +90,10 @@ GGML_TCL_CMD(ml_SiluInplaceCmd);
 // b - dy
 GGML_TCL_CMD(ml_SiluBackCmd);
 // normalize along rows
-//GGML_TCL_CMD(ml_NormCmd);
-//GGML_TCL_CMD(ml_NormInplaceCmd);
-//GGML_TCL_CMD(ml_RmsNormCmd);
-//GGML_TCL_CMD(ml_RmsNormInplaceCmd);
+GGML_TCL_CMD(ml_NormCmd);
+GGML_TCL_CMD(ml_NormInplaceCmd);
+GGML_TCL_CMD(ml_RmsNormCmd);
+GGML_TCL_CMD(ml_RmsNormInplaceCmd);
 
 // group normalize along ne0*ne1*n_groups
 // used in stable-diffusion

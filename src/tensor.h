@@ -107,12 +107,12 @@ GGML_TCL_CMD(ml_RmsNormBackCmd);
 // A: n columns, m rows
 // B: n columns, p rows  (i.e. we transpose it internally)
 // result is m columns, p rows
-//GGML_TCL_CMD(ml_MulMatCmd);
+GGML_TCL_CMD(ml_MulMatCmd);
 
 // A: m columns, n rows,
 // B: p columns, n rows,
 // result is m columns, p rows
-//GGML_TCL_CMD(ml_OutProdCmd);
+GGML_TCL_CMD(ml_OutProdCmd);
 
 //GGML_TCL_CMD(ml_ScaleCmd);
 //GGML_TCL_CMD(ml_ScaleInplaceCmd);

@@ -277,6 +277,10 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::set_1d_inplace", ml_Set1DInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_2d", ml_Set2DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::set_2d_inplace", ml_Set2DInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::cpy", ml_CpyCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::cpy_inplace", ml_CpyInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::cont", ml_ContCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::cont_inplace", ml_ContInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

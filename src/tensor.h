@@ -129,12 +129,12 @@ GGML_TCL_CMD(ml_Set2DCmd);
 GGML_TCL_CMD(ml_Set2DInplaceCmd);
 
 // a -> b, return view(b)
-//GGML_TCL_CMD(ml_CpyCmd);
+GGML_TCL_CMD(ml_CpyCmd);
 // a -> b, in-place, return view(b)
-//GGML_TCL_CMD(ml_CpyInplaceCmd);
+GGML_TCL_CMD(ml_CpyInplaceCmd);
 // make contiguous
-//GGML_TCL_CMD(ml_ContCmd);
-//GGML_TCL_CMD(ml_ContInplaceCmd);
+GGML_TCL_CMD(ml_ContCmd);
+GGML_TCL_CMD(ml_ContInplaceCmd);
 // return view(a), b specifies the new shape
 //GGML_TCL_CMD(ml_ReshapeCmd);
 // return view(a)

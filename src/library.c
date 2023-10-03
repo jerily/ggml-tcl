@@ -237,6 +237,12 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::sum_rows", ml_SumRowsCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::mean", ml_MeanCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::argmax", ml_ArgmaxCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::repeat", ml_RepeatCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::repeat_back", ml_RepeatBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::concat", ml_ConcatCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::abs", ml_AbsCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sgn", ml_SgnCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::sgn_inplace", ml_SgnInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

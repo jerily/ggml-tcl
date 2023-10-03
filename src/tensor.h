@@ -61,13 +61,15 @@ GGML_TCL_CMD(ml_SumCmd);
 GGML_TCL_CMD(ml_SumRowsCmd);
 GGML_TCL_CMD(ml_MeanCmd);
 GGML_TCL_CMD(ml_ArgmaxCmd);
-//GGML_TCL_CMD(ml_RepeatCmd);
-//GGML_TCL_CMD(ml_RepeatBackCmd);
-//GGML_TCL_CMD(ml_ConcatCmd);
-//GGML_TCL_CMD(ml_AbsCmd);
-//GGML_TCL_CMD(ml_AbsInplaceCmd);
-//GGML_TCL_CMD(ml_SgnCmd);
-//GGML_TCL_CMD(ml_SgnInplaceCmd);
+// if a is the same shape as b, and a is not parameter, return a
+// otherwise, return a new tensor: repeat(a) to fit in b
+GGML_TCL_CMD(ml_RepeatCmd);
+GGML_TCL_CMD(ml_RepeatBackCmd);
+GGML_TCL_CMD(ml_ConcatCmd);
+GGML_TCL_CMD(ml_AbsCmd);
+GGML_TCL_CMD(ml_AbsInplaceCmd);
+GGML_TCL_CMD(ml_SgnCmd);
+GGML_TCL_CMD(ml_SgnInplaceCmd);
 //GGML_TCL_CMD(ml_StepCmd);
 //GGML_TCL_CMD(ml_StepInplaceCmd);
 //GGML_TCL_CMD(ml_TanhCmd);

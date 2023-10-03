@@ -114,8 +114,8 @@ GGML_TCL_CMD(ml_MulMatCmd);
 // result is m columns, p rows
 GGML_TCL_CMD(ml_OutProdCmd);
 
-//GGML_TCL_CMD(ml_ScaleCmd);
-//GGML_TCL_CMD(ml_ScaleInplaceCmd);
+GGML_TCL_CMD(ml_ScaleCmd);
+GGML_TCL_CMD(ml_ScaleInplaceCmd);
 //GGML_TCL_CMD(ml_SetCmd);
 //GGML_TCL_CMD(ml_SetInplaceCmd);
 //GGML_TCL_CMD(ml_Set1DCmd);

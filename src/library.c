@@ -243,6 +243,22 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::abs", ml_AbsCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sgn", ml_SgnCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::sgn_inplace", ml_SgnInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::neg", ml_NegCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::neg_inplace", ml_NegInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::step", ml_StepCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::step_inplace", ml_StepInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::tanh", ml_TanhCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::tanh_inplace", ml_TanhInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::elu", ml_EluCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::elu_inplace", ml_EluInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::relu", ml_ReluCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::relu_inplace", ml_ReluInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::gelu", ml_GeluCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::gelu_inplace", ml_GeluInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::gelu_quick", ml_GeluQuickCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::gelu_quick_inplace", ml_GeluQuickInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::silu", ml_SiluCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::silu_inplace", ml_SiluInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

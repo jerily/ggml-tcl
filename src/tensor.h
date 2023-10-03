@@ -88,7 +88,7 @@ GGML_TCL_CMD(ml_SiluCmd);
 GGML_TCL_CMD(ml_SiluInplaceCmd);
 // a - x
 // b - dy
-//GGML_TCL_CMD(ml_SiluBackCmd);
+GGML_TCL_CMD(ml_SiluBackCmd);
 // normalize along rows
 //GGML_TCL_CMD(ml_NormCmd);
 //GGML_TCL_CMD(ml_NormInplaceCmd);

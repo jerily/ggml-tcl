@@ -149,8 +149,8 @@ GGML_TCL_CMD(ml_View3DCmd);
 GGML_TCL_CMD(ml_View4DCmd);
 GGML_TCL_CMD(ml_PermuteCmd);
 GGML_TCL_CMD(ml_TransposeCmd);
-//GGML_TCL_CMD(ml_GetRowsCmd);
-//GGML_TCL_CMD(ml_GetRowsBackCmd);
+GGML_TCL_CMD(ml_GetRowsCmd);
+GGML_TCL_CMD(ml_GetRowsBackCmd);
 //GGML_TCL_CMD(ml_DiagCmd);
 // set elements above the diagonal to -INF
 //GGML_TCL_CMD(ml_DiagMaskInfCmd);

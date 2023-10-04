@@ -292,6 +292,8 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::view_4d", ml_View4DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::permute", ml_PermuteCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::transpose", ml_TransposeCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_rows", ml_GetRowsCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_rows_back", ml_GetRowsBackCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

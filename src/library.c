@@ -281,6 +281,17 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::cpy_inplace", ml_CpyInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::cont", ml_ContCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::cont_inplace", ml_ContInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::reshape", ml_ReshapeCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::reshape_1d", ml_Reshape1DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::reshape_2d", ml_Reshape2DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::reshape_3d", ml_Reshape3DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::reshape_4d", ml_Reshape4DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::view_1d", ml_View1DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::view_2d", ml_View2DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::view_3d", ml_View3DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::view_4d", ml_View4DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::permute", ml_PermuteCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::transpose", ml_TransposeCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

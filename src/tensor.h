@@ -136,19 +136,19 @@ GGML_TCL_CMD(ml_CpyInplaceCmd);
 GGML_TCL_CMD(ml_ContCmd);
 GGML_TCL_CMD(ml_ContInplaceCmd);
 // return view(a), b specifies the new shape
-//GGML_TCL_CMD(ml_ReshapeCmd);
+GGML_TCL_CMD(ml_ReshapeCmd);
 // return view(a)
-//GGML_TCL_CMD(ml_Reshape1DCmd);
-//GGML_TCL_CMD(ml_Reshape2DCmd);
-//GGML_TCL_CMD(ml_Reshape3DCmd);
-//GGML_TCL_CMD(ml_Reshape4DCmd);
+GGML_TCL_CMD(ml_Reshape1DCmd);
+GGML_TCL_CMD(ml_Reshape2DCmd);
+GGML_TCL_CMD(ml_Reshape3DCmd);
+GGML_TCL_CMD(ml_Reshape4DCmd);
 // offset in bytes
-//GGML_TCL_CMD(ml_View1DCmd);
-//GGML_TCL_CMD(ml_View2DCmd);
-//GGML_TCL_CMD(ml_View3DCmd);
-//GGML_TCL_CMD(ml_View4DCmd);
-//GGML_TCL_CMD(ml_PermuteCmd);
-//GGML_TCL_CMD(ml_TransposeCmd);
+GGML_TCL_CMD(ml_View1DCmd);
+GGML_TCL_CMD(ml_View2DCmd);
+GGML_TCL_CMD(ml_View3DCmd);
+GGML_TCL_CMD(ml_View4DCmd);
+GGML_TCL_CMD(ml_PermuteCmd);
+GGML_TCL_CMD(ml_TransposeCmd);
 //GGML_TCL_CMD(ml_GetRowsCmd);
 //GGML_TCL_CMD(ml_GetRowsBackCmd);
 //GGML_TCL_CMD(ml_DiagCmd);

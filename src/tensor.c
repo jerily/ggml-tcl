@@ -3258,3 +3258,567 @@ int ml_ContCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
     SetResult(output_tensor_ptr->handle);
     return TCL_OK;
 }
+
+int ml_ReshapeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "ReshapeCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *tensor = ggml_reshape(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_Reshape1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Reshape1DCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_handle ne0");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    uint64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_reshape_1d(ctx->ggml_ctx, a->ggml_tensor, ne0);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_Reshape2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Reshape2DCmd\n"));
+    CheckArgs(5, 5, 1, "context_handle tensor_handle ne0 ne1");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    uint64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_reshape_2d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_Reshape3DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Reshape3DCmd\n"));
+    CheckArgs(6, 6, 1, "context_handle tensor_handle ne0 ne1 ne2");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    uint64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne2;
+    if (Tcl_GetLongFromObj(interp, objv[5], &ne2) != TCL_OK) {
+        SetResult("ne2 must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_reshape_3d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, ne2);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_Reshape4DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Reshape4DCmd\n"));
+    CheckArgs(7, 7, 1, "context_handle tensor_handle ne0 ne1 ne2 ne3");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    uint64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne2;
+    if (Tcl_GetLongFromObj(interp, objv[5], &ne2) != TCL_OK) {
+        SetResult("ne2 must be a long integer");
+        return TCL_ERROR;
+    }
+    uint64_t ne3;
+    if (Tcl_GetLongFromObj(interp, objv[6], &ne3) != TCL_OK) {
+        SetResult("ne3 must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_reshape_4d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, ne2, ne3);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_View1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "View1DCmd\n"));
+    CheckArgs(5, 5, 1, "context_handle tensor_handle ne0 offset");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t offset;
+    if (Tcl_GetLongFromObj(interp, objv[4], &offset) != TCL_OK) {
+        SetResult("offset must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_view_1d(ctx->ggml_ctx, a->ggml_tensor, ne0, offset);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_View2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "View2DCmd\n"));
+    CheckArgs(7, 7, 1, "context_handle tensor_handle ne0 ne1 nb1 offset");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb1;
+    if (Tcl_GetLongFromObj(interp, objv[5], &nb1) != TCL_OK) {
+        SetResult("nb1 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t offset;
+    if (Tcl_GetLongFromObj(interp, objv[6], &offset) != TCL_OK) {
+        SetResult("offset must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_view_2d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, nb1, offset);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_View3DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "View3DCmd\n"));
+    CheckArgs(9, 9, 1, "context_handle tensor_handle ne0 ne1 ne2 nb1 nb2 offset");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne2;
+    if (Tcl_GetLongFromObj(interp, objv[5], &ne2) != TCL_OK) {
+        SetResult("ne2 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb1;
+    if (Tcl_GetLongFromObj(interp, objv[6], &nb1) != TCL_OK) {
+        SetResult("nb1 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb2;
+    if (Tcl_GetLongFromObj(interp, objv[7], &nb2) != TCL_OK) {
+        SetResult("nb2 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t offset;
+    if (Tcl_GetLongFromObj(interp, objv[8], &offset) != TCL_OK) {
+        SetResult("offset must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_view_3d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, ne2, nb1, nb2, offset);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_View4DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "View4DCmd\n"));
+    CheckArgs(11, 11, 1, "context_handle tensor_handle ne0 ne1 ne2 ne3 nb1 nb2 nb3 offset");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int64_t ne0;
+    if (Tcl_GetLongFromObj(interp, objv[3], &ne0) != TCL_OK) {
+        SetResult("ne0 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne1;
+    if (Tcl_GetLongFromObj(interp, objv[4], &ne1) != TCL_OK) {
+        SetResult("ne1 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne2;
+    if (Tcl_GetLongFromObj(interp, objv[5], &ne2) != TCL_OK) {
+        SetResult("ne2 must be a long integer");
+        return TCL_ERROR;
+    }
+    int64_t ne3;
+    if (Tcl_GetLongFromObj(interp, objv[6], &ne3) != TCL_OK) {
+        SetResult("ne3 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb1;
+    if (Tcl_GetLongFromObj(interp, objv[7], &nb1) != TCL_OK) {
+        SetResult("nb1 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb2;
+    if (Tcl_GetLongFromObj(interp, objv[8], &nb2) != TCL_OK) {
+        SetResult("nb2 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t nb3;
+    if (Tcl_GetLongFromObj(interp, objv[9], &nb3) != TCL_OK) {
+        SetResult("nb3 must be a long integer");
+        return TCL_ERROR;
+    }
+    size_t offset;
+    if (Tcl_GetLongFromObj(interp, objv[10], &offset) != TCL_OK) {
+        SetResult("offset must be a long integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *tensor = ggml_view_4d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, nb1, offset);
+    if (!tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    tensor_ptr->ggml_tensor = tensor;
+    tensor_ptr->ctx = ctx;
+    tensor_ptr->next = NULL;
+    tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, tensor_ptr);
+
+    CMD_TENSOR_NAME(tensor_ptr->handle, tensor_ptr);
+    ml_RegisterTensor(tensor_ptr->handle, tensor_ptr);
+
+    SetResult(tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_PermuteCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "PermuteCmd\n"));
+    CheckArgs(7, 7, 1, "context_handle tensor_handle axis0 axis1 axis2 axis3");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int axis0;
+    if (Tcl_GetIntFromObj(interp, objv[3], &axis0) != TCL_OK) {
+        SetResult("axis0 must be an integer");
+        return TCL_ERROR;
+    }
+    int axis1;
+    if (Tcl_GetIntFromObj(interp, objv[4], &axis1) != TCL_OK) {
+        SetResult("axis1 must be an integer");
+        return TCL_ERROR;
+    }
+    int axis2;
+    if (Tcl_GetIntFromObj(interp, objv[5], &axis2) != TCL_OK) {
+        SetResult("axis2 must be an integer");
+        return TCL_ERROR;
+    }
+    int axis3;
+    if (Tcl_GetIntFromObj(interp, objv[6], &axis3) != TCL_OK) {
+        SetResult("axis3 must be an integer");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_permute(ctx->ggml_ctx, tensor_ptr->ggml_tensor, axis0, axis1, axis2, axis3);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_TransposeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "TransposeCmd\n"));
+    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_transpose(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}

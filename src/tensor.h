@@ -220,10 +220,10 @@ GGML_TCL_CMD(ml_FlashFFCmd);
 // w:    14
 // res: 768   14   14    25
 // used in sam
-//GGML_TCL_CMD(ml_WinPartCmd);
-//GGML_TCL_CMD(ml_WinUnpartCmd);
-//GGML_TCL_CMD(ml_UnaryCmd);
-//GGML_TCL_CMD(ml_UnaryInplaceCmd);
+GGML_TCL_CMD(ml_WinPartCmd);
+GGML_TCL_CMD(ml_WinUnpartCmd);
+GGML_TCL_CMD(ml_UnaryCmd);
+GGML_TCL_CMD(ml_UnaryInplaceCmd);
 // used in sam
 //GGML_TCL_CMD(ml_GetRelPosCmd);
 // used in sam

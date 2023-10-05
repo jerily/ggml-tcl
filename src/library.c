@@ -324,6 +324,8 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::flash_attn", ml_FlashAttnCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::flash_attn_back", ml_FlashAttnBackCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::flash_ff", ml_FlashFFCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::win_part", ml_WinPartCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::win_unpart", ml_WinUnpartCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

@@ -5255,3 +5255,44 @@ int ml_Pool2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *c
     SetResult(output_tensor_ptr->handle);
     return TCL_OK;
 }
+
+int ml_UpscaleCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UpscaleCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_handle scale_factor");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int scale_factor;
+    if (Tcl_GetIntFromObj(interp, objv[3], &scale_factor) != TCL_OK) {
+        SetResult("scale_factor must be an integer");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_upscale(ctx->ggml_ctx, tensor_ptr->ggml_tensor, scale_factor);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}

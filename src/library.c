@@ -320,6 +320,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::conv_transpose_2d_p0", ml_ConvTranspose2DP0Cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::pool_1d", ml_Pool1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::pool_2d", ml_Pool2DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::upscale", ml_UpscaleCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

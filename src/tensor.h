@@ -210,7 +210,7 @@ GGML_TCL_CMD(ml_Pool1DCmd);
 GGML_TCL_CMD(ml_Pool2DCmd);
 // nearest interpolate
 // used in stable-diffusion
-//GGML_TCL_CMD(ml_UpscaleCmd);
+GGML_TCL_CMD(ml_UpscaleCmd);
 //GGML_TCL_CMD(ml_FlashAttnCmd);
 //GGML_TCL_CMD(ml_FlashAttnBackCmd);
 //GGML_TCL_CMD(ml_FlashFFCmd);

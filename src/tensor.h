@@ -229,7 +229,7 @@ GGML_TCL_CMD(ml_UnaryInplaceCmd);
 // used in sam
 //GGML_TCL_CMD(ml_AddRelPosCmd);
 //GGML_TCL_CMD(ml_GetRelPosInplaceCmd);
-//GGML_TCL_CMD(ml_CrossEntropyLossCmd);
-//GGML_TCL_CMD(ml_CrossEntropyLossBackCmd);
+GGML_TCL_CMD(ml_CrossEntropyLossCmd);
+GGML_TCL_CMD(ml_CrossEntropyLossBackCmd);
 
 #endif //GGML_TCL_TENSOR_H

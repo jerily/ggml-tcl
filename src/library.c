@@ -294,6 +294,15 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::transpose", ml_TransposeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_rows", ml_GetRowsCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_rows_back", ml_GetRowsBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::diag", ml_DiagCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::diag_mask_inf", ml_DiagMaskInfCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::diag_mask_inf_inplace", ml_DiagMaskInfInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::diag_mask_zero", ml_DiagMaskZeroCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::diag_mask_zero_inplace", ml_DiagMaskZeroInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::soft_max", ml_SoftMaxCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::soft_max_inplace", ml_SoftMaxInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::soft_max_back", ml_SoftMaxBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::soft_max_back_inplace", ml_SoftMaxBackInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

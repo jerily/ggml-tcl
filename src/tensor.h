@@ -151,17 +151,17 @@ GGML_TCL_CMD(ml_PermuteCmd);
 GGML_TCL_CMD(ml_TransposeCmd);
 GGML_TCL_CMD(ml_GetRowsCmd);
 GGML_TCL_CMD(ml_GetRowsBackCmd);
-//GGML_TCL_CMD(ml_DiagCmd);
+GGML_TCL_CMD(ml_DiagCmd);
 // set elements above the diagonal to -INF
-//GGML_TCL_CMD(ml_DiagMaskInfCmd);
-//GGML_TCL_CMD(ml_DiagMaskInfInplaceCmd);
+GGML_TCL_CMD(ml_DiagMaskInfCmd);
+GGML_TCL_CMD(ml_DiagMaskInfInplaceCmd);
 // set elements above the diagonal to 0
-//GGML_TCL_CMD(ml_DiagMaskZeroCmd);
-//GGML_TCL_CMD(ml_DiagMaskZeroInplaceCmd);
-//GGML_TCL_CMD(ml_SoftmaxCmd);
-//GGML_TCL_CMD(ml_SoftmaxInplaceCmd);
-//GGML_TCL_CMD(ml_SoftmaxBackCmd);
-//GGML_TCL_CMD(ml_SoftmaxBackInplaceCmd);
+GGML_TCL_CMD(ml_DiagMaskZeroCmd);
+GGML_TCL_CMD(ml_DiagMaskZeroInplaceCmd);
+GGML_TCL_CMD(ml_SoftMaxCmd);
+GGML_TCL_CMD(ml_SoftMaxInplaceCmd);
+GGML_TCL_CMD(ml_SoftMaxBackCmd);
+GGML_TCL_CMD(ml_SoftMaxBackInplaceCmd);
 // rotary position embedding
 // if mode & 1 == 1, skip n_past elements
 // if mode & 2 == 1, GPT-NeoX style

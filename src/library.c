@@ -303,6 +303,12 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::soft_max_inplace", ml_SoftMaxInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::soft_max_back", ml_SoftMaxBackCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::soft_max_back_inplace", ml_SoftMaxBackInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope", ml_RopeCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope_inplace", ml_RopeInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope_custom", ml_RopeCustomCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope_custom_inplace", ml_RopeCustomInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope_xpos_inplace", ml_RopeXposInplaceCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::rope_back", ml_RopeBackCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

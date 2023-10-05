@@ -166,15 +166,15 @@ GGML_TCL_CMD(ml_SoftMaxBackInplaceCmd);
 // if mode & 1 == 1, skip n_past elements
 // if mode & 2 == 1, GPT-NeoX style
 // if mode & 4 == 1, ChatGLM style
-//GGML_TCL_CMD(ml_RopeCmd);
+GGML_TCL_CMD(ml_RopeCmd);
 // in-place, returns view(a)
-//GGML_TCL_CMD(ml_RopeInplaceCmd);
+GGML_TCL_CMD(ml_RopeInplaceCmd);
 // custom RoPE
-//GGML_TCL_CMD(ml_RopeCustomCmd);
-//GGML_TCL_CMD(ml_RopeCustomInplaceCmd);
+GGML_TCL_CMD(ml_RopeCustomCmd);
+GGML_TCL_CMD(ml_RopeCustomInplaceCmd);
 // xPos RoPE, in-place, returns view(a)
-//GGML_TCL_CMD(ml_RopeXposInplaceCmd);
-//GGML_TCL_CMD(ml_RopeBackCmd);
+GGML_TCL_CMD(ml_RopeXposInplaceCmd);
+GGML_TCL_CMD(ml_RopeBackCmd);
 // alibi position embedding
 // in-place, returns view(a)
 //GGML_TCL_CMD(ml_AlibiCmd);

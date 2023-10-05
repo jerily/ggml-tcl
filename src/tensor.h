@@ -211,9 +211,9 @@ GGML_TCL_CMD(ml_Pool2DCmd);
 // nearest interpolate
 // used in stable-diffusion
 GGML_TCL_CMD(ml_UpscaleCmd);
-//GGML_TCL_CMD(ml_FlashAttnCmd);
-//GGML_TCL_CMD(ml_FlashAttnBackCmd);
-//GGML_TCL_CMD(ml_FlashFFCmd);
+GGML_TCL_CMD(ml_FlashAttnCmd);
+GGML_TCL_CMD(ml_FlashAttnBackCmd);
+GGML_TCL_CMD(ml_FlashFFCmd);
 // partition into non-overlapping windows with padding if needed
 // example:
 // a:   768   64   64    1

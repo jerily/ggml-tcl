@@ -321,6 +321,9 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::pool_1d", ml_Pool1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::pool_2d", ml_Pool2DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::upscale", ml_UpscaleCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::flash_attn", ml_FlashAttnCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::flash_attn_back", ml_FlashAttnBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::flash_ff", ml_FlashFFCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

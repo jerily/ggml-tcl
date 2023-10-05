@@ -5132,7 +5132,7 @@ static const char *op_pool[] = {
 
 enum ggml_op_pool ml_GetOpPool(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     int opIndex;
-    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, types, "ggml_op_pool", 0, &opIndex)) {
+    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, op_pool, "ggml_op_pool", 0, &opIndex)) {
         return (enum ggml_op_pool) opIndex;
     }
     return GGML_OP_POOL_COUNT;
@@ -5577,7 +5577,7 @@ static const char *unary_op[] = {
 
 enum ggml_unary_op ml_GetUnaryOp(Tcl_Interp *interp, Tcl_Obj *objPtr) {
     int opIndex;
-    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, types, "ggml_op_pool", 0, &opIndex)) {
+    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, unary_op, "ggml_op_pool", 0, &opIndex)) {
         return (enum ggml_unary_op) opIndex;
     }
     return GGML_UNARY_OP_ABS;

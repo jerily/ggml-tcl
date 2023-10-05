@@ -330,6 +330,9 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::unary_inplace", ml_UnaryInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::cross_entropy_loss", ml_CrossEntropyLossCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::cross_entropy_loss_back", ml_CrossEntropyLossBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::get_rel_pos", ml_GetRelPosCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::add_rel_pos", ml_AddRelPosCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::add_rel_pos_inplace", ml_AddRelPosInplaceCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

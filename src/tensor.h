@@ -225,10 +225,10 @@ GGML_TCL_CMD(ml_WinUnpartCmd);
 GGML_TCL_CMD(ml_UnaryCmd);
 GGML_TCL_CMD(ml_UnaryInplaceCmd);
 // used in sam
-//GGML_TCL_CMD(ml_GetRelPosCmd);
+GGML_TCL_CMD(ml_GetRelPosCmd);
 // used in sam
-//GGML_TCL_CMD(ml_AddRelPosCmd);
-//GGML_TCL_CMD(ml_GetRelPosInplaceCmd);
+GGML_TCL_CMD(ml_AddRelPosCmd);
+GGML_TCL_CMD(ml_AddRelPosInplaceCmd);
 GGML_TCL_CMD(ml_CrossEntropyLossCmd);
 GGML_TCL_CMD(ml_CrossEntropyLossBackCmd);
 

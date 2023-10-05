@@ -177,7 +177,7 @@ GGML_TCL_CMD(ml_RopeXposInplaceCmd);
 GGML_TCL_CMD(ml_RopeBackCmd);
 // alibi position embedding
 // in-place, returns view(a)
-//GGML_TCL_CMD(ml_AlibiCmd);
+GGML_TCL_CMD(ml_AlibiCmd);
 // clamp
 // in-place, returns view(a)
 //GGML_TCL_CMD(ml_ClampCmd);

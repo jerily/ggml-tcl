@@ -309,6 +309,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::rope_custom_inplace", ml_RopeCustomInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rope_xpos_inplace", ml_RopeXposInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rope_back", ml_RopeBackCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::alibi", ml_AlibiCmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

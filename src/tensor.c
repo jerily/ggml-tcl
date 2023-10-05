@@ -3153,21 +3153,27 @@ int ml_Set2DInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 int ml_CpyCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "CpyCmd\n"));
-    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
 
-    struct ggml_tensor *output_tensor = ggml_cpy(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    struct ggml_tensor *output_tensor = ggml_cpy(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -3189,21 +3195,27 @@ int ml_CpyCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *cons
 
 int ml_CpyInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "CpyInplaceCmd\n"));
-    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
 
-    struct ggml_tensor *output_tensor = ggml_cpy_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    struct ggml_tensor *output_tensor = ggml_cpy_inplace(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -3711,7 +3723,7 @@ int ml_View4DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *c
         SetResult("offset must be a long integer");
         return TCL_ERROR;
     }
-    struct ggml_tensor *tensor = ggml_view_4d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, nb1, offset);
+    struct ggml_tensor *tensor = ggml_view_4d(ctx->ggml_ctx, a->ggml_tensor, ne0, ne1, ne2, ne3, nb1, nb2, nb3, offset);
     if (!tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4625,6 +4637,57 @@ int ml_RopeBackCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     }
 
     struct ggml_tensor *output_tensor = ggml_rope_back(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx, freq_base, freq_scale, xpos_base, xpos_down);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_AlibiCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "AlibiCmd\n"));
+    CheckArgs(6, 6, 1, "context_handle tensor_handle n_past n_head bias_max");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    int n_past;
+    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
+        SetResult("n_past must be an integer");
+        return TCL_ERROR;
+    }
+    int n_head;
+    if (Tcl_GetIntFromObj(interp, objv[4], &n_head) != TCL_OK) {
+        SetResult("n_head must be an integer");
+        return TCL_ERROR;
+    }
+    float bias_max;
+    if (Tcl_GetDoubleFromObj(interp, objv[5], &bias_max) != TCL_OK) {
+        SetResult("bias_max must be a double");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_alibi(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_head, bias_max);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;

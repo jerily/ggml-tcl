@@ -206,8 +206,8 @@ GGML_TCL_CMD(ml_Conv2DSkP0Cmd);
 // used in sam
 GGML_TCL_CMD(ml_Conv2DS1PhCmd);
 GGML_TCL_CMD(ml_ConvTranspose2DP0Cmd);
-//GGML_TCL_CMD(ml_Pool1DCmd);
-//GGML_TCL_CMD(ml_Pool2DCmd);
+GGML_TCL_CMD(ml_Pool1DCmd);
+GGML_TCL_CMD(ml_Pool2DCmd);
 // nearest interpolate
 // used in stable-diffusion
 //GGML_TCL_CMD(ml_UpscaleCmd);

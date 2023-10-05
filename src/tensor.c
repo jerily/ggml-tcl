@@ -5121,3 +5121,137 @@ int ml_ConvTranspose2DP0Cmd(ClientData clientData, Tcl_Interp *interp, int objc,
     SetResult(tensor_ptr->handle);
     return TCL_OK;
 }
+
+
+static const char *op_pool[] = {
+        "MAX",
+        "AVG",
+        "COUNT",
+        NULL
+};
+
+enum ggml_op_pool ml_GetOpPool(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    int opIndex;
+    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, types, "ggml_op_pool", 0, &opIndex)) {
+        return (enum ggml_op_pool) opIndex;
+    }
+    return GGML_OP_POOL_COUNT;
+}
+
+int ml_Pool1DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Pool1DCmd\n"));
+    CheckArgs(7, 7, 1, "context_handle tensor_handle op_pool k0 s0 p0");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    enum ggml_op_pool op = ml_GetOpPool(interp, objv[3]);
+    int k0;
+    if (Tcl_GetIntFromObj(interp, objv[4], &k0) != TCL_OK) {
+        SetResult("k0 must be an integer");
+        return TCL_ERROR;
+    }
+    int s0;
+    if (Tcl_GetIntFromObj(interp, objv[5], &s0) != TCL_OK) {
+        SetResult("s0 must be an integer");
+        return TCL_ERROR;
+    }
+    int p0;
+    if (Tcl_GetIntFromObj(interp, objv[6], &p0) != TCL_OK) {
+        SetResult("p0 must be an integer");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_pool_1d(ctx->ggml_ctx, tensor_ptr->ggml_tensor, op, k0, s0, p0);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_Pool2DCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "Pool2DCmd\n"));
+    CheckArgs(10, 10, 1, "context_handle tensor_handle op_pool k0 k1 s0 s1 p0 p1");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    enum ggml_op_pool op = ml_GetOpPool(interp, objv[3]);
+    int k0;
+    if (Tcl_GetIntFromObj(interp, objv[4], &k0) != TCL_OK) {
+        SetResult("k0 must be an integer");
+        return TCL_ERROR;
+    }
+    int k1;
+    if (Tcl_GetIntFromObj(interp, objv[5], &k1) != TCL_OK) {
+        SetResult("k1 must be an integer");
+        return TCL_ERROR;
+    }
+    int s0;
+    if (Tcl_GetIntFromObj(interp, objv[6], &s0) != TCL_OK) {
+        SetResult("s0 must be an integer");
+        return TCL_ERROR;
+    }
+    int s1;
+    if (Tcl_GetIntFromObj(interp, objv[7], &s1) != TCL_OK) {
+        SetResult("s1 must be an integer");
+        return TCL_ERROR;
+    }
+    int p0;
+    if (Tcl_GetIntFromObj(interp, objv[8], &p0) != TCL_OK) {
+        SetResult("p0 must be an integer");
+        return TCL_ERROR;
+    }
+    int p1;
+    if (Tcl_GetIntFromObj(interp, objv[9], &p1) != TCL_OK) {
+        SetResult("p1 must be an integer");
+        return TCL_ERROR;
+    }
+    struct ggml_tensor *output_tensor = ggml_pool_2d(ctx->ggml_ctx, tensor_ptr->ggml_tensor, op, k0, k1, s0, s1, p0, p1);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}

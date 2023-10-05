@@ -5560,3 +5560,99 @@ int ml_WinUnpartCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     SetResult(output_tensor_ptr->handle);
     return TCL_OK;
 }
+
+static const char *unary_op[] = {
+        "ABS",
+        "SGN",
+        "NEG",
+        "STEP",
+        "TANH",
+        "ELU",
+        "RELU",
+        "GELU",
+        "GELU_QUICK",
+        "SILU",
+        NULL
+};
+
+enum ggml_unary_op ml_GetUnaryOp(Tcl_Interp *interp, Tcl_Obj *objPtr) {
+    int opIndex;
+    if (TCL_OK == Tcl_GetIndexFromObj(interp, objPtr, types, "ggml_op_pool", 0, &opIndex)) {
+        return (enum ggml_unary_op) opIndex;
+    }
+    return GGML_UNARY_OP_ABS;
+}
+
+int ml_UnaryCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UnaryCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_handle unary_op");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    enum ggml_unary_op op = ml_GetUnaryOp(interp, objv[3]);
+
+    struct ggml_tensor *output_tensor = ggml_unary(ctx->ggml_ctx, tensor_ptr->ggml_tensor, op);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
+int ml_UnaryInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "UnaryInplaceCmd\n"));
+    CheckArgs(4, 4, 1, "context_handle tensor_handle unary_op");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+    enum ggml_unary_op op = ml_GetUnaryOp(interp, objv[3]);
+
+    struct ggml_tensor *output_tensor = ggml_unary_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor, op);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}

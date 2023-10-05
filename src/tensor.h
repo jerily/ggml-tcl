@@ -180,13 +180,13 @@ GGML_TCL_CMD(ml_RopeBackCmd);
 GGML_TCL_CMD(ml_AlibiCmd);
 // clamp
 // in-place, returns view(a)
-//GGML_TCL_CMD(ml_ClampCmd);
-//GGML_TCL_CMD(ml_Conv1DCmd);
+GGML_TCL_CMD(ml_ClampCmd);
+GGML_TCL_CMD(ml_Conv1DCmd);
 // conv_1d with padding = half
 // alias for ggml_conv_1d(a, b, s, a->ne[0]/2, d)
-//GGML_TCL_CMD(ml_Conv1DPhCmd);
-//GGML_TCL_CMD(ml_ConvTranspose1DCmd);
-//GGML_TCL_CMD(ml_Conv2DCmd);
+GGML_TCL_CMD(ml_Conv1DPhCmd);
+GGML_TCL_CMD(ml_ConvTranspose1DCmd);
+GGML_TCL_CMD(ml_Conv2DCmd);
 // kernel size is a->ne[0] x a->ne[1]
 // stride is equal to kernel size
 // padding is zero
@@ -195,7 +195,7 @@ GGML_TCL_CMD(ml_AlibiCmd);
 // b:   1024 1024    3    1
 // res:   64   64  768    1
 // used in sam
-//GGML_TCL_CMD(ml_Conv2DSkP0Cmd);
+GGML_TCL_CMD(ml_Conv2DSkP0Cmd);
 // kernel size is a->ne[0] x a->ne[1]
 // stride is 1
 // padding is half
@@ -204,8 +204,8 @@ GGML_TCL_CMD(ml_AlibiCmd);
 // b:     64   64    256    1
 // res:   64   64    256    1
 // used in sam
-//GGML_TCL_CMD(ml_Conv2DS1PhCmd);
-//GGML_TCL_CMD(ml_ConvTranspose2dP0Cmd);
+GGML_TCL_CMD(ml_Conv2DS1PhCmd);
+GGML_TCL_CMD(ml_ConvTranspose2DP0Cmd);
 //GGML_TCL_CMD(ml_Pool1DCmd);
 //GGML_TCL_CMD(ml_Pool2DCmd);
 // nearest interpolate

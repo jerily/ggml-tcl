@@ -310,6 +310,14 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::rope_xpos_inplace", ml_RopeXposInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rope_back", ml_RopeBackCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::alibi", ml_AlibiCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::clamp", ml_AlibiCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_1d", ml_Conv1DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_1d_ph", ml_Conv1DPhCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_transpose_1d", ml_ConvTranspose1DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_2d", ml_Conv2DCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_2d_sk_p0", ml_Conv2DSkP0Cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_2d_s1_ph", ml_Conv2DS1PhCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::conv_transpose_2d_p0", ml_ConvTranspose2DP0Cmd, NULL, NULL);
 
     return Tcl_PkgProvide(interp, "ggml", XSTR(PROJECT_VERSION));
 }

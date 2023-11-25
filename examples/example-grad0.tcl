@@ -1,3 +1,5 @@
+# https://github.com/ggerganov/llama.cpp/blob/master/tests/test-grad0.cpp
+
 package require ggml
 
 proc check_gradient {op_name ctx0 x f n_dims nargs eps max_error_abs max_error_rel {n_threads 10}} {

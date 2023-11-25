@@ -35,7 +35,7 @@ static int ml_BuildForwardExpandCmd(ClientData clientData, Tcl_Interp *interp, i
     }
 
     ml_cgraph_t *cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
-    cgraph_ptr->ggml_cgraph = ggml_new_graph(ctx->ggml_ctx);
+    cgraph_ptr->ggml_cgraph = ggml_new_graph_custom(ctx->ggml_ctx, GGML_DEFAULT_GRAPH_SIZE, true);
     cgraph_ptr->ctx = ctx;
     ggml_build_forward_expand(cgraph_ptr->ggml_cgraph, tensor_ptr->ggml_tensor);
     cgraph_ptr->ctx = ctx;
@@ -70,7 +70,7 @@ static int ml_GraphComputeCmd(ClientData clientData, Tcl_Interp *interp, int obj
 }
 
 static int ml_BuildBackwardExpandCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "BuildBackwardCtxCmd\n"));
+    DBG(fprintf(stderr, "BuildBackwardExpandCmd\n"));
     CheckArgs(4, 4, 1, "context_handle forward_cgraph_handle keep_gradient_graph");
 
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -94,12 +94,13 @@ static int ml_BuildBackwardExpandCmd(ClientData clientData, Tcl_Interp *interp, 
     }
 
     ml_cgraph_t *backward_cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
-    backward_cgraph_ptr->ggml_cgraph = ggml_new_graph(ctx->ggml_ctx);
+    backward_cgraph_ptr->ggml_cgraph = ggml_new_graph_custom(ctx->ggml_ctx, GGML_DEFAULT_GRAPH_SIZE, true);
     backward_cgraph_ptr->ctx = ctx;
     CMD_CGRAPH_NAME(backward_cgraph_ptr->handle, backward_cgraph_ptr);
     ml_RegisterCGraph(backward_cgraph_ptr->handle, backward_cgraph_ptr);
     ctx->gb = backward_cgraph_ptr;
 
+    ggml_graph_cpy(forward_cgraph_ptr->ggml_cgraph, backward_cgraph_ptr->ggml_cgraph);
     ggml_build_backward_expand(
             ctx->ggml_ctx,
             forward_cgraph_ptr->ggml_cgraph,

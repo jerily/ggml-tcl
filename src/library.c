@@ -69,7 +69,7 @@ static int ml_GraphComputeCmd(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_OK;
 }
 
-static int ml_BuildBackwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+static int ml_BuildBackwardExpandCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "BuildBackwardCtxCmd\n"));
     CheckArgs(4, 4, 1, "context_handle forward_cgraph_handle keep_gradient_graph");
 
@@ -192,7 +192,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::get_mem_size", ml_GetMemSizeCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "::ggml::build_forward_expand", ml_BuildForwardExpandCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::build_backward_expand", ml_BuildBackwardCtxCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::build_backward_expand", ml_BuildBackwardExpandCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "::ggml::graph_compute", ml_GraphComputeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_reset", ml_GraphResetCmd, NULL, NULL);

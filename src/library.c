@@ -100,7 +100,6 @@ static int ml_BuildBackwardExpandCmd(ClientData clientData, Tcl_Interp *interp, 
     ml_RegisterCGraph(backward_cgraph_ptr->handle, backward_cgraph_ptr);
     ctx->gb = backward_cgraph_ptr;
 
-    *backward_cgraph_ptr->ggml_cgraph = *forward_cgraph_ptr->ggml_cgraph;
     ggml_build_backward_expand(
             ctx->ggml_ctx,
             forward_cgraph_ptr->ggml_cgraph,

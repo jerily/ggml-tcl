@@ -16,7 +16,7 @@ set x2 [::ggml::mul $ctx $x $x]
 set f [::ggml::add $ctx [::ggml::mul $ctx $a $x2] $b]
 
 # build forward computational graph
-set gf [::ggml::build_forward_ctx $ctx $f]
+set gf [::ggml::build_forward_expand $ctx $f]
 puts "gf: $gf"
 
 # set the input variable and parameter values

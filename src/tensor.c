@@ -3271,6 +3271,42 @@ int ml_ContCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
     return TCL_OK;
 }
 
+int ml_ContInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "ContInplaceCmd\n"));
+    CheckArgs(3, 3, 1, "context_handle tensor_handle");
+    const char *context_handle = Tcl_GetString(objv[1]);
+    ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
+    if (!ctx) {
+        SetResult("context handle not found");
+        return TCL_ERROR;
+    }
+    const char *tensor_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
+    if (!tensor_ptr) {
+        SetResult("tensor handle not found");
+        return TCL_ERROR;
+    }
+
+    struct ggml_tensor *output_tensor = ggml_cont_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    if (!output_tensor) {
+        SetResult("tensor allocation failed");
+        return TCL_ERROR;
+    }
+
+    ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
+    output_tensor_ptr->ggml_tensor = output_tensor;
+    output_tensor_ptr->ctx = ctx;
+    output_tensor_ptr->next = NULL;
+    output_tensor_ptr->prev = NULL;
+    ml_InsertTensorToList(ctx, output_tensor_ptr);
+
+    CMD_TENSOR_NAME(output_tensor_ptr->handle, output_tensor_ptr);
+    ml_RegisterTensor(output_tensor_ptr->handle, output_tensor_ptr);
+
+    SetResult(output_tensor_ptr->handle);
+    return TCL_OK;
+}
+
 int ml_ReshapeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "ReshapeCmd\n"));
     CheckArgs(4, 4, 1, "context_handle tensor_a tensor_b");
@@ -4283,22 +4319,23 @@ int ml_SoftMaxBackInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc
 
 int ml_RopeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "RopeCmd\n"));
-    CheckArgs(7, 7, 1, "context_handle tensor_handle n_past n_dims mode n_ctx");
+    CheckArgs(7, 7, 1, "context_handle tensor_a_handle tensor_b_handle n_dims mode n_ctx");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4317,7 +4354,7 @@ int ml_RopeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
         return TCL_ERROR;
     }
 
-    struct ggml_tensor *output_tensor = ggml_rope(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx);
+    struct ggml_tensor *output_tensor = ggml_rope(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, mode, n_ctx);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4339,22 +4376,23 @@ int ml_RopeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *con
 
 int ml_RopeInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "RopeInplaceCmd\n"));
-    CheckArgs(7, 7, 1, "context_handle tensor_handle n_past n_dims mode n_ctx");
+    CheckArgs(7, 7, 1, "context_handle tensor_a_handle tensor_b_handle n_dims mode n_ctx");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4373,7 +4411,7 @@ int ml_RopeInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
         return TCL_ERROR;
     }
 
-    struct ggml_tensor *output_tensor = ggml_rope_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx);
+    struct ggml_tensor *output_tensor = ggml_rope_inplace(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, mode, n_ctx);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4395,22 +4433,23 @@ int ml_RopeInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
 int ml_RopeCustomCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "RopeCustomCmd\n"));
-    CheckArgs(9, 9, 1, "context_handle tensor_handle n_past n_dims mode n_ctx freq_base freq_scale");
+    CheckArgs(14, 14, 1, "context_handle tensor_a_handle tensor_b_handle n_dims mode n_ctx n_orig_ctx freq_base freq_scale ext_factor attn_factor beta_fast beta_slow");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4428,23 +4467,47 @@ int ml_RopeCustomCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         SetResult("n_ctx must be an integer");
         return TCL_ERROR;
     }
+    int n_orig_ctx;
+    if (Tcl_GetIntFromObj(interp, objv[7], &n_orig_ctx) != TCL_OK) {
+        SetResult("n_orig_ctx must be an integer");
+        return TCL_ERROR;
+    }
     float freq_base;
-    if (Tcl_GetDoubleFromObj(interp, objv[7], &freq_base) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_base) != TCL_OK) {
         SetResult("freq_base must be a double");
         return TCL_ERROR;
     }
     float freq_scale;
-    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_scale) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[9], &freq_scale) != TCL_OK) {
         SetResult("freq_scale must be a double");
         return TCL_ERROR;
     }
+    float ext_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[10], &ext_factor) != TCL_OK) {
+        SetResult("ext_factor must be a double");
+        return TCL_ERROR;
+    }
+    float attn_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[11], &attn_factor) != TCL_OK) {
+        SetResult("attn_factor must be a double");
+        return TCL_ERROR;
+    }
+    float beta_fast;
+    if (Tcl_GetDoubleFromObj(interp, objv[12], &beta_fast) != TCL_OK) {
+        SetResult("beta_fast must be a double");
+        return TCL_ERROR;
+    }
+    float beta_slow;
+    if (Tcl_GetDoubleFromObj(interp, objv[13], &beta_slow) != TCL_OK) {
+        SetResult("beta_slow must be a double");
+        return TCL_ERROR;
+    }
 
-    struct ggml_tensor *output_tensor = ggml_rope_custom(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx, freq_base, freq_scale);
+    struct ggml_tensor *output_tensor = ggml_rope_custom(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, mode, n_ctx, n_orig_ctx, freq_base, freq_scale, ext_factor, attn_factor, beta_fast, beta_slow);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
     }
-
     ml_tensor_t *output_tensor_ptr = (ml_tensor_t *) Tcl_Alloc(sizeof(ml_tensor_t));
     output_tensor_ptr->ggml_tensor = output_tensor;
     output_tensor_ptr->ctx = ctx;
@@ -4461,22 +4524,23 @@ int ml_RopeCustomCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 int ml_RopeCustomInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "RopeCustomInplaceCmd\n"));
-    CheckArgs(9, 9, 1, "context_handle tensor_handle n_past n_dims mode n_ctx freq_base freq_scale");
+    CheckArgs(14, 14, 1, "context_handle tensor_a_handle tensor_b_handle n_dims mode n_ctx n_orig_ctx freq_base freq_scale ext_factor attn_factor beta_fast beta_slow");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4494,18 +4558,43 @@ int ml_RopeCustomInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc,
         SetResult("n_ctx must be an integer");
         return TCL_ERROR;
     }
+    int n_orig_ctx;
+    if (Tcl_GetIntFromObj(interp, objv[7], &n_orig_ctx) != TCL_OK) {
+        SetResult("n_orig_ctx must be an integer");
+        return TCL_ERROR;
+    }
     float freq_base;
-    if (Tcl_GetDoubleFromObj(interp, objv[7], &freq_base) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_base) != TCL_OK) {
         SetResult("freq_base must be a double");
         return TCL_ERROR;
     }
     float freq_scale;
-    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_scale) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[9], &freq_scale) != TCL_OK) {
         SetResult("freq_scale must be a double");
         return TCL_ERROR;
     }
+    float ext_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[10], &ext_factor) != TCL_OK) {
+        SetResult("ext_factor must be a double");
+        return TCL_ERROR;
+    }
+    float attn_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[11], &attn_factor) != TCL_OK) {
+        SetResult("attn_factor must be a double");
+        return TCL_ERROR;
+    }
+    float beta_fast;
+    if (Tcl_GetDoubleFromObj(interp, objv[12], &beta_fast) != TCL_OK) {
+        SetResult("beta_fast must be a double");
+        return TCL_ERROR;
+    }
+    float beta_slow;
+    if (Tcl_GetDoubleFromObj(interp, objv[13], &beta_slow) != TCL_OK) {
+        SetResult("beta_slow must be a double");
+        return TCL_ERROR;
+    }
 
-    struct ggml_tensor *output_tensor = ggml_rope_custom_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx, freq_base, freq_scale);
+    struct ggml_tensor *output_tensor = ggml_rope_custom_inplace(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, mode, n_ctx, n_orig_ctx, freq_base, freq_scale, ext_factor, attn_factor, beta_fast, beta_slow);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4534,15 +4623,16 @@ int ml_RopeXposInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, T
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4560,7 +4650,7 @@ int ml_RopeXposInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, T
         SetResult("down must be a boolean");
         return TCL_ERROR;
     }
-    struct ggml_tensor *output_tensor = ggml_rope_xpos_inplace(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, base, down);
+    struct ggml_tensor *output_tensor = ggml_rope_xpos_inplace(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, base, down);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4582,22 +4672,23 @@ int ml_RopeXposInplaceCmd(ClientData clientData, Tcl_Interp *interp, int objc, T
 
 int ml_RopeBackCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     DBG(fprintf(stderr, "RopeBackCmd\n"));
-    CheckArgs(11, 11, 1, "context_handle tensor_handle n_past n_dims mode n_ctx freq_base freq_scale xpos_base xpos_down");
+    CheckArgs(16, 16, 1, "context_handle tensor_a_handle tensor_b_handle n_dims mode n_ctx n_orig_ctx freq_base freq_scale ext_factor attn_factor beta_fast beta_slow xpos_base xpos_down");
     const char *context_handle = Tcl_GetString(objv[1]);
     ml_context_t *ctx = ml_GetInternalFromContext(context_handle);
     if (!ctx) {
         SetResult("context handle not found");
         return TCL_ERROR;
     }
-    const char *tensor_handle = Tcl_GetString(objv[2]);
-    ml_tensor_t *tensor_ptr = ml_GetInternalFromTensor(tensor_handle);
-    if (!tensor_ptr) {
-        SetResult("tensor handle not found");
+    const char *tensor_a_handle = Tcl_GetString(objv[2]);
+    ml_tensor_t *a = ml_GetInternalFromTensor(tensor_a_handle);
+    if (!a) {
+        SetResult("tensor a handle not found");
         return TCL_ERROR;
     }
-    int n_past;
-    if (Tcl_GetIntFromObj(interp, objv[3], &n_past) != TCL_OK) {
-        SetResult("n_past must be an integer");
+    const char *tensor_b_handle = Tcl_GetString(objv[3]);
+    ml_tensor_t *b = ml_GetInternalFromTensor(tensor_b_handle);
+    if (!b) {
+        SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
     int n_dims;
@@ -4615,28 +4706,52 @@ int ml_RopeBackCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         SetResult("n_ctx must be an integer");
         return TCL_ERROR;
     }
+    int n_orig_ctx;
+    if (Tcl_GetIntFromObj(interp, objv[7], &n_orig_ctx) != TCL_OK) {
+        SetResult("n_orig_ctx must be an integer");
+        return TCL_ERROR;
+    }
     float freq_base;
-    if (Tcl_GetDoubleFromObj(interp, objv[7], &freq_base) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_base) != TCL_OK) {
         SetResult("freq_base must be a double");
         return TCL_ERROR;
     }
     float freq_scale;
-    if (Tcl_GetDoubleFromObj(interp, objv[8], &freq_scale) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[9], &freq_scale) != TCL_OK) {
         SetResult("freq_scale must be a double");
         return TCL_ERROR;
     }
+    float ext_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[10], &ext_factor) != TCL_OK) {
+        SetResult("ext_factor must be a double");
+        return TCL_ERROR;
+    }
+    float attn_factor;
+    if (Tcl_GetDoubleFromObj(interp, objv[11], &attn_factor) != TCL_OK) {
+        SetResult("attn_factor must be a double");
+        return TCL_ERROR;
+    }
+    float beta_fast;
+    if (Tcl_GetDoubleFromObj(interp, objv[12], &beta_fast) != TCL_OK) {
+        SetResult("beta_fast must be a double");
+        return TCL_ERROR;
+    }
+    float beta_slow;
+    if (Tcl_GetDoubleFromObj(interp, objv[13], &beta_slow) != TCL_OK) {
+        SetResult("beta_slow must be a double");
+        return TCL_ERROR;
+    }
     float xpos_base;
-    if (Tcl_GetDoubleFromObj(interp, objv[9], &xpos_base) != TCL_OK) {
+    if (Tcl_GetDoubleFromObj(interp, objv[14], &xpos_base) != TCL_OK) {
         SetResult("xpos_base must be a double");
         return TCL_ERROR;
     }
     int xpos_down;
-    if (Tcl_GetBooleanFromObj(interp, objv[10], &xpos_down) != TCL_OK) {
+    if (Tcl_GetBooleanFromObj(interp, objv[15], &xpos_down) != TCL_OK) {
         SetResult("xpos_down must be a boolean");
         return TCL_ERROR;
     }
-
-    struct ggml_tensor *output_tensor = ggml_rope_back(ctx->ggml_ctx, tensor_ptr->ggml_tensor, n_past, n_dims, mode, n_ctx, freq_base, freq_scale, xpos_base, xpos_down);
+    struct ggml_tensor *output_tensor = ggml_rope_back(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, n_dims, mode, n_ctx, n_orig_ctx, freq_base, freq_scale, ext_factor, attn_factor, beta_fast, beta_slow, xpos_base, xpos_down);
     if (!output_tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;
@@ -4831,18 +4946,18 @@ int ml_Conv1DPhCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
         SetResult("tensor b handle not found");
         return TCL_ERROR;
     }
-    int s;
-    if (Tcl_GetIntFromObj(interp, objv[4], &s) != TCL_OK) {
+    int s0;
+    if (Tcl_GetIntFromObj(interp, objv[4], &s0) != TCL_OK) {
         SetResult("stride must be an integer");
         return TCL_ERROR;
     }
-    int d;
-    if (Tcl_GetIntFromObj(interp, objv[6], &d) != TCL_OK) {
+    int d0;
+    if (Tcl_GetIntFromObj(interp, objv[5], &d0) != TCL_OK) {
         SetResult("dilation must be an integer");
         return TCL_ERROR;
     }
 
-    struct ggml_tensor *tensor = ggml_conv_1d(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, s, d);
+    struct ggml_tensor *tensor = ggml_conv_1d_ph(ctx->ggml_ctx, a->ggml_tensor, b->ggml_tensor, s0, d0);
     if (!tensor) {
         SetResult("tensor allocation failed");
         return TCL_ERROR;

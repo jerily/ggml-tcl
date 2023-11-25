@@ -16,8 +16,8 @@
 
 static int ml_ModuleInitialized;
 
-static int ml_BuildForwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-    DBG(fprintf(stderr, "BuildForwardCtxCmd\n"));
+static int ml_BuildForwardExpandCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+    DBG(fprintf(stderr, "BuildForwardExpandCmd\n"));
     CheckArgs(3, 3, 1, "context_handle tensor_handle");
 
     const char *context_handle = Tcl_GetString(objv[1]);
@@ -35,7 +35,9 @@ static int ml_BuildForwardCtxCmd(ClientData clientData, Tcl_Interp *interp, int 
     }
 
     ml_cgraph_t *cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
-    cgraph_ptr->ggml_cgraph = ggml_build_forward_ctx(ctx->ggml_ctx, tensor_ptr->ggml_tensor);
+    cgraph_ptr->ggml_cgraph = ggml_new_graph(ctx->ggml_ctx);
+    cgraph_ptr->ctx = ctx;
+    ggml_build_forward_expand(cgraph_ptr->ggml_cgraph, tensor_ptr->ggml_tensor);
     cgraph_ptr->ctx = ctx;
     CMD_CGRAPH_NAME(cgraph_ptr->handle, cgraph_ptr);
     ml_RegisterCGraph(cgraph_ptr->handle, cgraph_ptr);
@@ -189,8 +191,8 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::get_max_tensor_size", ml_GetMaxTensorSizeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_mem_size", ml_GetMemSizeCmd, NULL, NULL);
 
-    Tcl_CreateObjCommand(interp, "::ggml::build_forward_ctx", ml_BuildForwardCtxCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::build_backward_ctx", ml_BuildBackwardCtxCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::build_forward_expand", ml_BuildForwardExpandCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::build_backward_expand", ml_BuildBackwardCtxCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "::ggml::graph_compute", ml_GraphComputeCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_reset", ml_GraphResetCmd, NULL, NULL);

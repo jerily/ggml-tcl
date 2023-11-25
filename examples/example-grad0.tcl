@@ -1,8 +1,8 @@
 package require ggml
 
 proc check_gradient {op_name ctx0 x f n_dims nargs eps max_error_abs max_error_rel {n_threads 10}} {
-    set gf [::ggml::build_forward_ctx $ctx0 $f]
-    set gb [::ggml::build_backward_ctx $ctx0 $gf false]
+    set gf [::ggml::build_forward_expand $ctx0 $f]
+    set gb [::ggml::build_backward_expand $ctx0 $gf false]
     ::ggml::graph_compute $gf $n_threads
     ::ggml::graph_reset $gf
     ::ggml::set_f32 [::ggml::get_grad $f] 1.0

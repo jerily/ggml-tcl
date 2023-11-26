@@ -1,6 +1,7 @@
 # ggml-tcl
 
-TCL bindings for [ggml](https://github.com/ggerganov/ggml).
+TCL bindings for [ggml](https://github.com/ggerganov/ggml),
+a tensor library for machine learning
 
 **Note that this project is under active development.**
 

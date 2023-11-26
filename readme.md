@@ -39,19 +39,19 @@ make install
 ## TCL Commands
 
 ```
-::ggml::create_context
-::ggml::destroy_context
-::ggml::load_context_from_file
-::ggml::used_mem
-::ggml::get_max_tensor_size
-::ggml::get_mem_size
+::ggml::create_context mem_size
+::ggml::destroy_context context_handle
+::ggml::load_context_from_file filename
+::ggml::used_mem context_handle
+::ggml::get_max_tensor_size context_handle
+::ggml::get_mem_size context_handle
 
-::ggml::build_forward_expand
-::ggml::build_backward_expand
+::ggml::build_forward_expand context_handle tensor_handle
+::ggml::build_backward_expand context_handle forward_cgraph_handle keep_gradient_graph
 
-::ggml::graph_compute
-::ggml::graph_reset
-::ggml::graph_dump_dot
+::ggml::graph_compute cgraph_handle nthreads
+::ggml::graph_reset cgraph_handle
+::ggml::graph_dump_dot gb_handle fg_handle filename
 
 ::ggml::set_param
 ::ggml::get_grad

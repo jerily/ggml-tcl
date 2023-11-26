@@ -1,6 +1,11 @@
 package require ggml
 
-set filename "/home/phi/data/llama-2-7b.Q4_0.gguf"
+if { [llength $argv] != 1 } {
+    puts "Usage: $argv0 <filename.gguf>"
+    exit 1
+}
+
+set filename [lindex $argv 0]
 set ctx [::ggml::load_context_from_file $filename]
 puts ctx=$ctx
 puts used_mem=[::ggml::used_mem $ctx]

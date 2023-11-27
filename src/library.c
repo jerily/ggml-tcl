@@ -312,7 +312,7 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::rope_xpos_inplace", ml_RopeXposInplaceCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::rope_back", ml_RopeBackCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::alibi", ml_AlibiCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "::ggml::clamp", ml_AlibiCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::clamp", ml_ClampCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::conv_1d", ml_Conv1DCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::conv_1d_ph", ml_Conv1DPhCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::conv_transpose_1d", ml_ConvTranspose1DCmd, NULL, NULL);

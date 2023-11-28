@@ -45,12 +45,15 @@ make install
 * **::ggml::get_max_tensor_size** *context_handle*
 * **::ggml::get_mem_size** *context_handle*
 
-* **::ggml::build_forward_expand** *context_handle* *tensor_handle*
-* **::ggml::build_backward_expand** *context_handle* *forward_cgraph_handle keep_gradient_graph*
+* **::ggml::build_forward_expand** *cgraph_handle* *tensor_handle*
+* **::ggml::build_backward_expand** *context_handle* *forward_cgraph_handle* *backward_cgraph_handle* *keep_gradient_graph*
 
+* **::ggml::new_graph** *context_handle*
+* **::ggml::new_graph_custom** *context_handle* *grads* *?size?*
 * **::ggml::graph_compute** *cgraph_handle* *nthreads*
 * **::ggml::graph_reset** *cgraph_handle*
 * **::ggml::graph_dump_dot** *gb_handle* *fg_handle* *output_filename*
+* **::ggml::graph_cpy** *src_cgraph_handle* *dst_cgraph_handle*
 
 * **::ggml::set_param** *context_handle* *tensor_handle*
 * **::ggml::get_grad** *tensor_handle*

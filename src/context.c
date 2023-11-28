@@ -23,8 +23,8 @@ static ml_context_t *ml_CreateContext(size_t mem_size) {
     struct ggml_context *ggml_ctx = ggml_init(params);
     ctx->ggml_ctx = ggml_ctx;
     ctx->gguf_ctx = NULL;
-    ctx->gf = NULL;
-    ctx->gb = NULL;
+    ctx->first_graph_ptr = NULL;
+    ctx->last_graph_ptr = NULL;
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 
@@ -70,22 +70,19 @@ static int ml_DestroyContext(Tcl_Interp *interp, ml_context_t *ctx) {
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 
-    if (ctx->gf) {
-        if (!ml_UnregisterCGraph(ctx->gf->handle)) {
+    ml_cgraph_t *graph_ptr = ctx->first_graph_ptr;
+    while (graph_ptr) {
+        ml_cgraph_t *next_graph_ptr = graph_ptr->next;
+        if (!ml_UnregisterCGraph(graph_ptr->handle)) {
             SetResult("unregister cgraph name failed");
             return TCL_ERROR;
         }
-        Tcl_Free((char *) ctx->gf);
-        ctx->gf = NULL;
+        Tcl_Free((char *) graph_ptr);
+        graph_ptr = next_graph_ptr;
     }
-    if (ctx->gb) {
-        if (!ml_UnregisterCGraph(ctx->gb->handle)) {
-            SetResult("unregister cgraph name failed");
-            return TCL_ERROR;
-        }
-        Tcl_Free((char *) ctx->gb);
-        ctx->gb = NULL;
-    }
+    ctx->first_graph_ptr = NULL;
+    ctx->last_graph_ptr = NULL;
+
     if (ctx->mem_buffer != NULL) {
         Tcl_Free(ctx->mem_buffer);
     }
@@ -132,8 +129,8 @@ int ml_LoadContextFromFileCmd(ClientData clientData, Tcl_Interp *interp, int obj
 
     ctx->gguf_ctx = gguf_ctx;
     ctx->mem_buffer = NULL;
-    ctx->gf = NULL;
-    ctx->gb = NULL;
+    ctx->first_graph_ptr = NULL;
+    ctx->last_graph_ptr = NULL;
     ctx->first_tensor_ptr = NULL;
     ctx->last_tensor_ptr = NULL;
 

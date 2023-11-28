@@ -6,7 +6,6 @@
 
 #include <tcl.h>
 #include <ggml.h>
-#include "common.h"
 #include "tensor.h"
 
 

@@ -6,7 +6,7 @@
 #ifndef GGML_TCL_TENSOR_H
 #define GGML_TCL_TENSOR_H
 
-#define GGML_TCL_CMD(x) int (x)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+#include "common.h"
 
 GGML_TCL_CMD(ml_GetGradCmd);
 GGML_TCL_CMD(ml_SetParamCmd);

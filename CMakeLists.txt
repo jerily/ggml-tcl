@@ -27,7 +27,8 @@ add_library(${PROJECT_NAME} SHARED src/library.c
         src/tensor.c
         src/common.c
         src/context.c
-        src/cgraph.c)
+        src/cgraph.c
+        src/opt.c)
 set_target_properties(${PROJECT_NAME}
         PROPERTIES POSITION_INDEPENDENT_CODE ON
         INSTALL_RPATH_USE_LINK_PATH ON

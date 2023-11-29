@@ -34,6 +34,8 @@ int ml_NewGraphCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     ml_cgraph_t *cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
     cgraph_ptr->ggml_cgraph = ggml_new_graph(ctx->ggml_ctx);
     cgraph_ptr->ctx = ctx;
+    cgraph_ptr->prev = NULL;
+    cgraph_ptr->next = NULL;
     CMD_CGRAPH_NAME(cgraph_ptr->handle, cgraph_ptr);
     ml_RegisterCGraph(cgraph_ptr->handle, cgraph_ptr);
     ml_InsertGraphToList(ctx, cgraph_ptr);
@@ -70,6 +72,8 @@ int ml_NewGraphCustomCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     ml_cgraph_t *cgraph_ptr = (ml_cgraph_t *) Tcl_Alloc(sizeof(ml_cgraph_t));
     cgraph_ptr->ggml_cgraph = ggml_new_graph_custom(ctx->ggml_ctx, size, grads);
     cgraph_ptr->ctx = ctx;
+    cgraph_ptr->prev = NULL;
+    cgraph_ptr->next = NULL;
     CMD_CGRAPH_NAME(cgraph_ptr->handle, cgraph_ptr);
     ml_RegisterCGraph(cgraph_ptr->handle, cgraph_ptr);
     ml_InsertGraphToList(ctx, cgraph_ptr);

@@ -11,6 +11,7 @@
 #include "context.h"
 #include "tensor.h"
 #include "cgraph.h"
+#include "opt.h"
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
@@ -61,6 +62,9 @@ int Ggml_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::ggml::graph_reset", ml_GraphResetCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_dump_dot", ml_GraphDumpDotCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::graph_cpy", ml_GraphCpyCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "::ggml::opt_default_params", ml_OptDefaultParamsCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "::ggml::opt", ml_OptCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "::ggml::set_param", ml_SetParamCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "::ggml::get_grad", ml_GetGradCmd, NULL, NULL);

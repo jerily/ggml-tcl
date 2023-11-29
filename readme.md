@@ -55,6 +55,9 @@ make install
 * **::ggml::graph_dump_dot** *gb_handle* *fg_handle* *output_filename*
 * **::ggml::graph_cpy** *src_cgraph_handle* *dst_cgraph_handle*
 
+* **::ggml::opt_default_params** *opt_type*
+* **::ggml::opt** *context_handle* *opt_params* *tensor_handle*
+
 * **::ggml::set_param** *context_handle* *tensor_handle*
 * **::ggml::get_grad** *tensor_handle*
 * **::ggml::nelements** *tensor_handle*
